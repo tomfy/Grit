@@ -65,7 +65,7 @@ int main()
         printf("Using input parameters read from file.\n");
     }
     else{
-        printf("Couldn't open input file grit_control; exitting.\n");
+        printf("Couldn't open input file grit_control; exiting.\n");
         exit(EXIT_FAILURE);
     }
     fclose(fp_in1);
@@ -163,17 +163,17 @@ int main()
 // open output files
     if(r_in.N_data == 1){
 
-        fp_out5 = fopen("Chain_averages.out", "w"); // <L> for each chain
-        output_run_params(fp_out5, &r_in);
+      /* fp_out5 = fopen("Chain_averages.out", "w"); // <L> for each chain */
+      /* output_run_params(fp_out5, &r_in); */
         
-        fp_out7 = fopen("Llambda_histos.out", "w");
-        output_run_params(fp_out7, &r_in);
+      /* fp_out7 = fopen("Llambda_histos.out", "w"); */
+      /* output_run_params(fp_out7, &r_in); */
 
-        fp_LiLtout = fopen("LiLt.out", "w");
-        output_run_params(fp_LiLtout, &r_in);
+      /* fp_LiLtout = fopen("LiLt.out", "w"); */
+      /* output_run_params(fp_LiLtout, &r_in); */
 
-         fp_lambdaIlambdaTout = fopen("lambdaIlambdaT.out", "w");
-        output_run_params(fp_lambdaIlambdaTout, &r_in);
+      /* fp_lambdaIlambdaTout = fopen("lambdaIlambdaT.out", "w"); */
+      /* output_run_params(fp_lambdaIlambdaTout, &r_in); */
 
         if(WRITERAW){
           /*   if(RUNCHOLD){ */
@@ -197,23 +197,23 @@ int main()
         }
     }
     
-    fp_out4 = fopen("L_lambda_dist.out", "w"); // histograms of L and lambda.
-    output_run_params(fp_out4, &r_in); 
+    /* fp_out4 = fopen("L_lambda_dist.out", "w"); // histograms of L and lambda. */
+    /* output_run_params(fp_out4, &r_in);  */
 
-    fp_out2 = fopen("XBW.out", "w"); // averages, W, B, etc.
-    output_run_params(fp_out2, &r_in);
+    /* fp_out2 = fopen("XBW.out", "w"); // averages, W, B, etc. */
+    /* output_run_params(fp_out2, &r_in); */
         
-    fp_out3 = fopen("Converge_summary.out", "w"); // N_conv, t_conv etc.
-    output_run_params(fp_out3, &r_in);
+    /* fp_out3 = fopen("Converge_summary.out", "w"); // N_conv, t_conv etc. */
+    /* output_run_params(fp_out3, &r_in); */
 
-    fp_out8 = fopen("translocations.out", "w"); // N_conv, t_conv etc.
-    output_run_params(fp_out8, &r_in);
+    /* fp_out8 = fopen("translocations.out", "w"); // N_conv, t_conv etc. */
+    /* output_run_params(fp_out8, &r_in); */
 
-    fp_out9 = fopen("Conv_Summary.out", "w");
-    output_run_params(fp_out9, &r_in);
+    /* fp_out9 = fopen("Conv_Summary.out", "w"); */
+    /* output_run_params(fp_out9, &r_in); */
 
-    fp_out10= fopen("Conv_dists.out", "w");
-    output_run_params(fp_out10, &r_in);
+    /* fp_out10= fopen("Conv_dists.out", "w"); */
+    /* output_run_params(fp_out10, &r_in); */
 
     printf(" \n");
   
@@ -227,7 +227,7 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
           seedrand(r_in.Rand_seed); 
         if (NPARAMVALS > 1){
             r_in.Epsilon = epsilonstodo[iiii];
-            output_run_params(fp_out3, &r_in);
+            // output_run_params(fp_out3, &r_in);
         }
         
         if(DOTESTHITS){
@@ -340,10 +340,10 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
         trmeant /= (double)(3*r_in.N_data/4 - r_in.N_data/4);
           
 
-            fprintf(fp_out9, "%10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g\n",
-		    r_in.Epsilon,
-                    n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean, q1, median, q3, trmean,
-                    t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean, q1t, mediant, q3t, trmeant);
+            /* fprintf(fp_out9, "%10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g\n", */
+	    /* 	    r_in.Epsilon, */
+            /*         n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean, q1, median, q3, trmean, */
+            /*         t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean, q1t, mediant, q3t, trmeant); */
             printf("MC iterations to convergence: ");
             print_stats(stdout, n_conv_histogram->stats);
             printf("CPU time to convergence: ");
@@ -353,10 +353,10 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
                     "\nN_data: %i, %i. \n <N_conv> = %f +- %f. \n <cpu_t_conv> = %f +- %f \n",
                     r_in.N_data, (int)n_conv_histogram->stats->N, n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean,
                     t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean);
-            fprintf(fp_out3,
-                    "\nN_data: %i, %i. \n <N_conv> = %f +- %f. \n <cpu_t_conv> = %f +- %f .\n",
-                    r_in.N_data, (int)n_conv_histogram->stats->N, n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean,
-                    t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean);
+            /* fprintf(fp_out3, */
+            /*         "\nN_data: %i, %i. \n <N_conv> = %f +- %f. \n <cpu_t_conv> = %f +- %f .\n", */
+            /*         r_in.N_data, (int)n_conv_histogram->stats->N, n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean, */
+            /*         t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean); */
 	 }
     }// end of loop over parameter to vary   
       
@@ -365,11 +365,11 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
     }
 
     // print out burn-in info
-    for (j=0; j<r_in.N_data; j++){
-      for(iiii=0; iiii<NPARAMVALS; iiii++){
-	fprintf(fp_out10, "%12g   %8d \n", epsilonstodo[iiii], Nconvdists[iiii][j]);
-      }
-    }
+    /* for (j=0; j<r_in.N_data; j++){ */
+    /*   for(iiii=0; iiii<NPARAMVALS; iiii++){ */
+    /* 	fprintf(fp_out10, "%12g   %8d \n", epsilonstodo[iiii], Nconvdists[iiii][j]); */
+    /*   } */
+    /* } */
     
     t_mainstop = GETCPUTIME;
     printf("number of path updates with log_p_a not(normal or zero): %i \n", n_path_p_a_nnoz);
