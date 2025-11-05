@@ -1,0 +1,13 @@
+Total_N_markers:	16
+N_genomes: 2
+Genome:	1
+	Distances? 0
+	N_chromosomes: 1
+	Chromosome:	1
+		N_markers:	16	Markers:     1 2 3 7 6 5 4 8 9 10 11 12 13 14 15 16
+
+Genome:	2
+	Distances? 0
+	N_chromosomes: 1
+	Chromosome:	1
+		N_markers:	16	Markers:     1 2 3 4 12 11 10 9 8 7 6 5 13 14 15 16 
