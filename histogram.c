@@ -13,7 +13,7 @@ create_histogram(int nbins, double minval, double binwidth)
 {
   Histogram* hist;
 
-  hist = (Histogram*)chmalloc(sizeof(Histogram));
+  hist = (Histogram*)chcalloc(1, sizeof(Histogram));
   hist->nbins = nbins;
   hist->minval = minval; // lower edge of leftmost bin, i.e. smallest value that goes in bin hist->histogram[0]
   hist->binwidth = binwidth;
@@ -24,7 +24,7 @@ create_histogram(int nbins, double minval, double binwidth)
   hist->low_ne = nbins+10;
   hist->hi_ne = -1; 
   hist->histogram = (double*)chcalloc((size_t)nbins, sizeof(double));
-  hist->stats = (Stats*)chmalloc(sizeof(Stats));
+  hist->stats = (Stats*)chcalloc(1, sizeof(Stats));
   initialize_stats(hist->stats);
   return hist;
 }

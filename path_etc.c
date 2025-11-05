@@ -46,7 +46,7 @@ Path* path_alloc(Step* step)
         // step is a pointer to the first step on path;
         // it doesn't need to be allocated before calling path_alloc
     
-    Path* path = (Path*)chmalloc(sizeof(Path)); n_path_alloc++;
+  Path* path = (Path*)chcalloc(1, sizeof(Path)); n_path_alloc++;
     path->accept = UNKNOWN;
     path->start = step; 
     path->end = step;
@@ -67,7 +67,7 @@ Path* path_alloc(Step* step)
 
 Step* step_alloc(Permutation* perm)
 {
-    Step* step = (Step*)chmalloc(sizeof(Step)); n_step_alloc++; 
+  Step* step = (Step*)chcalloc(1, sizeof(Step)); n_step_alloc++; 
     step->perm = perm;
     step->next = NULL;
     step->prev = NULL;

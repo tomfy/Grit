@@ -1563,11 +1563,11 @@ int compare_revs(Reversal rev1, Reversal rev2)
 Path*
 copy_path(Path* src_path)
 {
-    Path* targ_path = (Path*)chmalloc(sizeof(Path));
+  Path* targ_path = (Path*)chcalloc(1, sizeof(Path));
     int length, compare;
     Step* src_step = src_path->start;
     Step* targ_step, * targ_next_step;
-    targ_step = (Step*)chmalloc(sizeof(Step)); n_step_alloc++;
+    targ_step = (Step*)chcalloc(1, sizeof(Step)); n_step_alloc++;
 
     *targ_path = *src_path;
     
@@ -1579,7 +1579,7 @@ copy_path(Path* src_path)
     
     while(src_step->next != NULL){
        
-        targ_next_step = (Step*)chmalloc(sizeof(Step)); n_step_alloc++;
+      targ_next_step = (Step*)chcalloc(1, sizeof(Step)); n_step_alloc++;
         targ_next_step->rev = src_step->next->rev;
         targ_next_step->prob = src_step->next->prob;
         targ_next_step->n_dum = src_step->next->n_dum; // copy the numbers of dummy events

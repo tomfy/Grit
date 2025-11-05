@@ -21,7 +21,7 @@ path_tree_node_insert_multi(Path_tree_node** tree_node_ptrptr, State* state, int
     
     if(tree_node == NULL) // empty (sub)tree, insert new tree_node at top
     {
-        tree_node = (Path_tree_node*)chmalloc(sizeof(Path_tree_node)); n_path_tree_node_alloc++;
+      tree_node = (Path_tree_node*)chcalloc(1, sizeof(Path_tree_node)); n_path_tree_node_alloc++;
         tree_node->revseq = NULL;
         tree_node->path = copy_path(the_path);
         tree_node->count = weight;
@@ -91,7 +91,7 @@ alloc_path_tree()
 { 
     Path_tree* tree;
  
-    tree = (Path_tree*)chmalloc(sizeof(Path_tree)); n_path_tree_alloc++;
+    tree = (Path_tree*)chcalloc(1, sizeof(Path_tree)); n_path_tree_alloc++;
     tree->start = NULL;
     return tree; 
 } // end of alloc_path_tree

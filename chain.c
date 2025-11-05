@@ -364,7 +364,7 @@ test_trans_sym(int size, long trans[][100])
 State**
 get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n_short, int n_long, int max_path_length)
 {
-    State** the_state = (State**)chmalloc(sizeof(State*)*r_in->N_chain); // alloc array of pointers to the N_chain states
+  State** the_state = (State**)chcalloc(r_in->N_chain, sizeof(State*)); // alloc array of pointers to the N_chain states
     int ii;
     double Epsilon_init;
     int flips[NMARKERMAX];
@@ -397,8 +397,8 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
     
     for (ii = 0; ii<r_in->N_chain; ii++){ // gen initial paths, make n_short of them short, n_long long, the rest medium
             // initialize Imax etc.
-        the_state[ii] = (State*)chmalloc(sizeof(State)); // allocate memory for State structure
-        the_state[ii]->L = (Lambdas*)chmalloc(sizeof(Lambdas)); // allocate memory for Lambdas structure
+      the_state[ii] = (State*)chcalloc(1, sizeof(State)); // allocate memory for State structure
+      the_state[ii]->L = (Lambdas*)chcalloc(1, sizeof(Lambdas)); // allocate memory for Lambdas structure
         the_state[ii]->Imax = get_n_inv_max(p1);
         the_state[ii]->Imin = get_n_inv_min(p1);
         the_state[ii]->Tmax = get_n_trans_max(p1);
@@ -532,7 +532,7 @@ Chain_set*
 construct_chain_set(const Permutation* p1, const Permutation* p2, const Run_info_in* r_in)
 {
         // construct an initialized set of N_chain * N_temperatures Chains
-    Chain_set* the_set = (Chain_set*)chmalloc(sizeof(Chain_set)); // alloc Chain_set
+  Chain_set* the_set = (Chain_set*)chcalloc(1, sizeof(Chain_set)); // alloc Chain_set
     int i, j;
     double Temperature;
 
@@ -540,10 +540,10 @@ construct_chain_set(const Permutation* p1, const Permutation* p2, const Run_info
     the_set->N_temperatures = r_in->N_temperatures;
     the_set->N_chain = r_in->N_chain;
         // chain is array of N_chain pointers to arrays of N_temperature pointers to Chains
-    the_set->chain = (Chain***)chmalloc(sizeof(Chain**)*r_in->N_chain);
+    the_set->chain = (Chain***)chcalloc(r_in->N_chain, sizeof(Chain**));
         // now allocate the N_chain arrays of N_temperature arrays of Chains
     for(i=0; i<r_in->N_chain; i++){
-        the_set->chain[i] = (Chain**)chmalloc(sizeof(Chain*)*the_set->N_temperatures);
+      the_set->chain[i] = (Chain**)chcalloc(the_set->N_temperatures, sizeof(Chain*));
         Temperature = r_in->T_cold;
        printf("i,j,Temperature: %i %i %g \n", i, 0, Temperature); 
         the_set->chain[i][0] = construct_chain(p1, p2, r_in, i<NSHORT, Temperature);
@@ -564,7 +564,7 @@ construct_chain(const Permutation* p1in, const Permutation* p2in, const Run_info
 {
         // construct an initialized Chain
         //
-    Chain* the_chain = (Chain*)chmalloc(sizeof(Chain)); // alloc array of pointers to the N_chain states
+  Chain* the_chain = (Chain*)chcalloc(1, sizeof(Chain)); // alloc array of pointers to the N_chain states
     State* the_state;
     Permutation* p1 = copy_perm(p1in);
     Permutation* p2 = copy_perm(p2in); 
@@ -600,8 +600,8 @@ construct_chain(const Permutation* p1in, const Permutation* p2in, const Run_info
     
     get_CD(p1, p2, &the_cd);
     
-    the_state = (State*)chmalloc(sizeof(State)); // allocate memory for State structure
-    the_state->L = (Lambdas*)chmalloc(sizeof(Lambdas)); // allocate memory for Lambdas structure
+    the_state = (State*)chcalloc(1, sizeof(State)); // allocate memory for State structure
+    the_state->L = (Lambdas*)chcalloc(1, sizeof(Lambdas)); // allocate memory for Lambdas structure
     the_state->Imax = get_n_inv_max(p1);
     the_state->Imin = get_n_inv_min(p1);
     the_state->Tmax = get_n_trans_max(p1);
@@ -1152,7 +1152,7 @@ dist_converge(int N_chain, Histogram** hist)
     int i, j, nbins = the_hist->nbins;
     double sum_means = 0.0, sum_stddevs = 0.0;
 
-    hist_stats = (Stats*)chmalloc(nbins*sizeof(Stats));
+    hist_stats = (Stats*)chcalloc(nbins, sizeof(Stats));
     check_for_null_pointer((void*)hist_stats);
 
     for(j=0; j<nbins; j++){

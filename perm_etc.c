@@ -19,7 +19,7 @@ get_n_inv(Permutation* perm)
         // returns the number of inversions, i.e.
         // sum over chromosomes of m choose 2 where m is number of edges on chromosome (i.e. # markers plus 1)
         //  int n_markends_on_chrom[MAXNCHROM] = {0};
-    int* n_markends_on_chrom = (int*)chmalloc(sizeof(int)*perm->n_chrom);
+  int* n_markends_on_chrom = (int*)chcalloc(perm->n_chrom, sizeof(int));
     int i, chrom, max_chrom = -1, nedges;
     int n_inv = 0; // count the number of inversions
 
@@ -55,7 +55,7 @@ set_Ai_At(Permutation* perm)
     Marker_end* e1, * e2;
     double l, area;
     int chrom;
-    double* chrom_lengths = (double*)chmalloc(sizeof(double)*perm->n_chrom);
+    double* chrom_lengths = (double*)chcalloc(perm->n_chrom, sizeof(double));
     int stop = FALSE;
 
     /*  for(i=0; i<perm->n_chrom; i++){ */
@@ -112,7 +112,7 @@ check_Ai_At(Permutation* perm)
     Marker_end* e1, * e2;
     double l, area;
     int chrom;
-    double* chrom_lengths = (double*)chmalloc(sizeof(double)*perm->n_chrom);
+    double* chrom_lengths = (double*)chcalloc(perm->n_chrom, sizeof(double));
     int stop = FALSE;
     int result = TRUE;
    
@@ -575,8 +575,8 @@ Permutation* multipermalloc(int n_chromosomes, int n_markers)  // allocates memo
 { // including for the array of marker ends - multiple chromosome version
     Permutation* perm;
 
-    perm = (Permutation*)chmalloc(sizeof(Permutation)); n_perm_alloc++;
-    perm->p = (Marker_end*)chmalloc(sizeof(Marker_end)*2*(n_markers+n_chromosomes)); n_p_alloc++;
+    perm = (Permutation*)chcalloc(1, sizeof(Permutation)); n_perm_alloc++;
+    perm->p = (Marker_end*)chcalloc(2*(n_markers+n_chromosomes), sizeof(Marker_end)); n_p_alloc++;
     perm->n_mark = n_markers; // number of real markers
     perm->n_chrom = n_chromosomes;
     return perm;

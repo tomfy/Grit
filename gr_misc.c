@@ -253,9 +253,8 @@ check_for_null_pointer(void* p)
 }
 
 void* chmalloc(size_t size)
-{ // malloc with very simple checking for NULL pointer
-  // void* p = malloc(size);
-    void* p = calloc(1, size);
+{ //malloc with very simple checking for NULL pointer
+    void* p = malloc(size);
     if(p != NULL) return p;
     printf("malloc returned NULL pointer. \n");
     process_error();
