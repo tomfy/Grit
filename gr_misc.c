@@ -242,7 +242,6 @@ is_normal_or_zero(double x)
     return(x > -1.0e300 && x < 1.0e300);
 }
 
-
 void
 check_for_null_pointer(void* p)
 {
@@ -301,7 +300,7 @@ double beta_inc_half_old(int an, int aN)
         double dN = (double)aN;
         N = aN;
         if(resarray != NULL) free(resarray);
-        resarray = (double*)malloc(sizeof(double)*(N+1));
+        resarray = (double*)chcalloc((N+1), sizeof(double));
         
         resarray[0] = 1.0/(dN + 1.0); // result for x^N*(1-x)^0 *2^N+1
         for(m=1, n = N-1; m<=N; m++, n--){  
@@ -310,7 +309,7 @@ double beta_inc_half_old(int an, int aN)
 
         double denom;
         if(resarray2 != NULL) free(resarray2);
-        resarray2 = (double*)malloc(sizeof(double)*(N+1));
+        resarray2 = (double*)chcalloc((N+1), sizeof(double));
         denom = pow(2.0, (double)(N+1));
         for(m=0; m<=N; m++){  
             resarray2[m] = resarray[m]/denom;
@@ -336,8 +335,8 @@ double beta_inc_half(int n, int N)
   
     if(first){ //
         Nmax = N;
-        resarray = (double**)malloc(sizeof(double*)*(Nmax+1));
-        resarray2 = (double**)malloc(sizeof(double*)*(Nmax+1));
+        resarray = (double**)chcalloc((Nmax+1), sizeof(double*));
+        resarray2 = (double**)chcalloc((Nmax+1), sizeof(double*));
         for(i=0; i<= Nmax; i++){
             resarray[i] = resarray2[i] = NULL;
         }
@@ -354,8 +353,8 @@ double beta_inc_half(int n, int N)
     if(resarray[N] == NULL){ //
         int n, m;
         double denom;
-        resarray[N] = (double*)malloc(sizeof(double)*(N+1));
-        resarray2[N] = (double*)malloc(sizeof(double)*(N+1));
+        resarray[N] = (double*)chcalloc((N+1), sizeof(double));
+        resarray2[N] = (double*)chcalloc((N+1), sizeof(double));
         denom = pow(2.0, (double)(N+1));
         resarray[N][0] = 1.0/((double)N + 1.0); // result for x^N*(1-x)^0 *2^N+1
         resarray2[N][0] = resarray[N][0]/denom;

@@ -61,7 +61,10 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
                 the_path = the_state->path;
              
                 update_chain(the_chain, r_in);
-                if(iii==0 && (the_path->L <= 28 && the_path->L_t <= 11) && (steps_so_far % 100 == 0)) { print_path_brief(fp_paths, the_path); }
+                if(iii==0 && (the_path->L <= 28 && the_path->L_t <= 11) && (steps_so_far % 100 == 0)) {
+		  print_path_brief(fp_paths, the_path);
+		  // print_path(fp_paths, the_path);
+		}
  
                     // write to Rawx.out files
                 if(WRITERAW && (steps_so_far % WRITERAWEVERY == 0)){

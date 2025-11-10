@@ -668,10 +668,10 @@ init_genome(int N_chromosomes, int* N_markers, double* chromosome_length,
     perm = multipermalloc(N_chromosomes, N_markers_total);
 
     
-    perm->marker_names = (char**)malloc(sizeof(char*)*perm->n_mark);
+    perm->marker_names = (char**)chcalloc(perm->n_mark, sizeof(char*));
     for(i=0; i<perm->n_mark; i++){
             //  printf("allocating marker_name. i: %i \n", i);
-        perm->marker_names[i] = (char*)malloc(sizeof(char)*MAXMARKERNAMELENGTH);
+      perm->marker_names[i] = (char*)chcalloc(MAXMARKERNAMELENGTH, sizeof(char));
     }
     for(i=0; i<perm->n_chrom; i++){
         for(j=0; j<N_markers[i]; j++){
