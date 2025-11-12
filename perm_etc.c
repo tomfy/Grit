@@ -658,29 +658,34 @@ init_genome(int N_chromosomes, int* N_markers, double* chromosome_length,
 
     for(i=0; i<N_chromosomes; i++){
         N_markers_total += N_markers[i];
-        if(N_markers[i] > 0) {n_nonempty++; /* printf("chromosome %i is non_empty\n", i); */ }
-        else if(N_markers[i] == 0) {n_empty++; /* printf("chromosome %i is empty\n", i); */ }
+        if(N_markers[i] > 0) {n_nonempty++;  printf("chromosome %i is non_empty\n", i); /**/ }
+        else if(N_markers[i] == 0) {n_empty++; printf("chromosome %i is empty\n", i); /**/ }
         else printf("in init genome, negative # of markers on chromosome\n");
             //  perm->n_markers_on_chromosome[i] = 0;
     }
-        //   printf("in init_genome, N_chromosomes, total_N_markers, # nonempty, empty chromosomes: %i %i %i %i\n",
-        //        N_chromosomes, N_markers_total, n_nonempty, n_empty);
+    /* printf("in init_genome, N_chromosomes, total_N_markers, # nonempty, empty chromosomes: %i %i %i %i\n",
+		  N_chromosomes, N_markers_total, n_nonempty, n_empty);/* */
     perm = multipermalloc(N_chromosomes, N_markers_total);
-
+    //printf("after multipermalloc\n");
     
     perm->marker_names = (char**)chcalloc(perm->n_mark, sizeof(char*));
     for(i=0; i<perm->n_mark; i++){
-            //  printf("allocating marker_name. i: %i \n", i);
+            printf("allocating marker_name. i: %i \n", i);
       perm->marker_names[i] = (char*)chcalloc(MAXMARKERNAMELENGTH, sizeof(char));
     }
     for(i=0; i<perm->n_chrom; i++){
         for(j=0; j<N_markers[i]; j++){
-                //   printf("i: %i  j: %i \n", i, j);
+	  //printf("i: %i  j: %i \n", i, j);
             M = perm_array[i]+j;
-                //  printf("namesize, name, number:%i_%s_%i_\n", strlen(M->marker_name), M->marker_name, M->marker_number);
-                //  strncpy(perm->marker_names[M->marker_number-1], M->marker_name, MAXMARKERNAMELENGTH-1);
-            strcpy(perm->marker_names[M->marker_number-1], M->marker_name);
-                //  printf("after strncpy \n");
+	    /* printf("namesize, name, number:%i_%s_%i_  %c\n", strlen(M->marker_name),
+		   M->marker_name, M->marker_number, M->marker_sign[0]
+		     ); /* */
+
+	    int nonnegmn = M->marker_number;
+	    if(nonnegmn < 0) nonnegmn *= -1; // 
+		  //  strncpy(perm->marker_names[M->marker_number-1], M->marker_name, MAXMARKERNAMELENGTH-1);
+            strcpy(perm->marker_names[nonnegmn-1], M->marker_name);
+	    //printf("after strncpy \n");
         }
     }
 
