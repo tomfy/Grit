@@ -59,7 +59,9 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
                 the_chain = the_chain_set->chain[ii][iii];
                 the_state = the_chain->state;
                 the_path = the_state->path;
-             
+
+		// check_path_consistency_multi(the_path); // getchar();
+		
                 update_chain(the_chain, r_in);
                 if(iii==0 && (the_path->L <= 28 && the_path->L_t <= 11) && (steps_so_far % 100 == 0)) {
 		  print_path_brief(fp_paths, the_path);

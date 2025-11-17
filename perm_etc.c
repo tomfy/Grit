@@ -635,7 +635,7 @@ init_genome_to_random(int N_chromosomes, int N_markers, int N_randomize)
 
    // randomize the marker order
         //  printf("in init_genome_to_random. before marker order randomizing loop \n");
-        //  print_perm_markers(stdout, perm);
+        //  print_prm_markers(stdout, perm);
     
     for(i=0; i<N_randomize; i++){ simple_rand_reverse(perm, 1.0); }
         //  printf("in init_genome_to_random. after marker order randomizing loop \n");
