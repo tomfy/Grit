@@ -2091,8 +2091,7 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
 		    g[i][i_marker].marker_distance = cumulative_length_of_chromosomes + dist;
 		    //  printf("j: %i chrom_length[j]: %g cume chrom length, dist: %g  %g \n",
 		    //        j, chromosome_length[i][j], cumulative_length_of_chromosomes, dist); 
-		  }
-                    else {
+		  } else {
                         fscanf(fp, "%s", temp); dist = k+1;  // just use numbers 1,2,3... as distances from chrom end
 			
                         g[i][i_marker].marker_distance_on_chromosome = dist;
@@ -2103,6 +2102,7 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
                    
                    
                     strncpy(first, temp, 1);
+		    // fprintf(stderr, "ASDF: %s %s\n", first, temp);
                     if(strcmp(first, "-") == 0){ // sign is negative
                         strcpy(g[i][i_marker].marker_sign, "-");
                         strcpy(g[i][i_marker].marker_name, temp+1);
@@ -2120,6 +2120,7 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
                         strcpy(g[i][i_marker].marker_sign, "+");
                         strcpy(g[i][i_marker].marker_name, temp);
                     }
+		    // fprintf(stderr, "SDFG: %i %i  %s %s \n", i, i_marker, g[i][i_marker].marker_sign, g[i][i_marker].marker_name); //getchar();
                 }
                 else{ // marker entries in  file are like:  - XK3
                     fscanf(fp, "%s", g[i][i_marker].marker_sign);
@@ -2237,6 +2238,7 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
                         strcpy(g[i][i_marker].marker_sign, "+");
                         strcpy(g[i][i_marker].marker_name, temp);
                     }
+		    // fprintf(stderr, "SSSSDFG: %i %i  %s %s \n", i, i_marker, g[i][i_marker].marker_sign, g[i][i_marker].marker_name); //getchar();
                 }
                 else{ // marker entries in  file are like:  - XK3
                     fscanf(fp, "%s", g[i][i_marker].marker_sign);
@@ -2302,7 +2304,7 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
      
 /*     printf("second genome. L_g, A_i, A_t: %g %g %g \n", genomes[1]->L_g, genomes[1]->A_i, genomes[1]->A_t); */
 /*     print_perm(stdout, genomes[1]); printf("end of second genome \n"); */
-        //  getchar();
+    // getchar();
     return distances_in_file;
 } // end of get_genomes_from_file_new
 
