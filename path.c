@@ -111,7 +111,7 @@ shorten_path(Path* path)
     {
         int check_path_lens, check_path_consist;
         check_path_lens = (check_path_lengths(path) == TRUE);
-        printf("in shorten... after check_path_lengths."); fflush(stdout);
+        printf("in shorten... after check_path_lengths.\n"); fflush(stdout);
         check_path_consist = (check_path_consistency_multi(path) == 0); // checks that perms and reversals along path are consistent
         printf("in shorten...check path lengths, consist: %i %i \n", check_path_lens, check_path_consist); fflush(stdout);
     }
