@@ -182,7 +182,10 @@ check_path_consistency_multi(const Path* the_path)
     the_step = the_path->start; 
     start_perm = the_step->perm;
 
-        //   printf("top of check_ath_consistency... \n"); fflush(stdout);
+    //  printf("TTTTTTTTTTTTTTTTTTTTTop of check_path_consistency_multi... \n"); getchar();
+    //  print_path_brief(stderr, the_path);
+    
+     
     for(i=0; i<the_path->length; i++){
             //    printf("in check_path_... top of loop. i, %i \n", i); fflush(stdout);
         the_perm = the_step->perm;
@@ -192,9 +195,10 @@ check_path_consistency_multi(const Path* the_path)
             //    printf("lskjd \n", i); fflush(stdout);
         get_CD(start_perm, the_perm, &the_cd);
             //    printf("after first get_CD in check_path...\n"); fflush(stdout);
-        
+	//print_edss(&the_cd);  fflush(stdout); getchar();
         get_CD(start_perm, next_perm, &next_cd);
             //      printf("after second get_CD in check_path...\n"); fflush(stdout);
+	//print_edss(&the_cd);  fflush(stdout); getchar();
         delta_c_int = the_cd.n_int_cycles - next_cd.n_int_cycles;
         if(delta_c_int > 1 || delta_c_int < -1){
             print_perm(stdout, start_perm);
@@ -203,6 +207,7 @@ check_path_consistency_multi(const Path* the_path)
             print_perm(stdout, next_perm);
             print_edss(&next_cd);
             n_inconsistent++;
+	    // getchar();
         }
             //    printf("in check_ath_consistency...i, the_path->length, the_step, the_step->next %i %i %p %p \n",
             //    i, the_path->length, the_step, the_step->next); fflush(stdout);
