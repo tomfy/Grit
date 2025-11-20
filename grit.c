@@ -14,22 +14,21 @@
 #include "signal.h"
 #include "rngs.h"
 
+// ########### streamline it by removing loops over param values and data sets, etc.
+// 
 
 #include "extdefs.h"
-#define NPARAMVALS 1 // number of different parameter (e.g. epsilon, alpha) values
 
 int main()
 {
-    int i, j, iiii, n_conv, NpM;
+    int i, j, n_conv, NpM;
     double t_mainstart = 0.0, t_mainstop, cpu_time;
-    Permutation* p1[NDATAMAX] = {NULL}, * p2[NDATAMAX] = {NULL};
-        // unsigned int seeds[NDATAMAX];
-    FILE* fp_in1, * fp_in2, * fptest;
+    Permutation* p1[NDATAMAX] = {NULL}, * p2[NDATAMAX] = {NULL}; // arrays of pointers to perms
+    FILE* fp_in1, * fp_in2;
     Histogram* n_conv_histogram = create_histogram(1000, 0.0, 250.0);
     Histogram* t_conv_histogram = create_histogram(1000, 0.0, 0.25); 
    
-    double epsilonstodo[14] = {0.08, 0.1, 0.13, 0.17, 0.23, 0.29, 0.36, 0.065, 0.05, 0.03};
-    int Nconvdists[14][NDATAMAX] = {{0}}; // to store burn-in lengths for conv. studies
+    int Nconvdists[1][NDATAMAX] = {{0}}; // to store burn-in lengths for conv. studies
     Run_info_in r_in; // no longer global!
     double prob;
     Permutation* genomes[2];
@@ -221,79 +220,26 @@ int main()
 
         // 
     if(r_in.MC3_max_pathlength > MAXPATHLENGTH){ r_in.MC3_max_pathlength = MAXPATHLENGTH; }
-        
-for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study convergence
-            // seed rng each pass through loop with same seed
-          seedrand(r_in.Rand_seed); 
-        if (NPARAMVALS > 1){
-            r_in.Epsilon = epsilonstodo[iiii];
-            // output_run_params(fp_out3, &r_in);
-        }
-        
-        if(DOTESTHITS){
-            fptest = fopen("test_hits_vs_probs.out", "w");
-            for (j=0; j<r_in.N_data; j++)
-            {
-                double chek;
-                Cycle_decomposition the_cd;
 
-                printf("p1[j], p2[j]: \n");
-                print_perm(stdout, p1[j]); print_perm(stdout, p2[j]);
-                chek = test_hits_vs_probs_1_step(fptest, p1[j], p2[j], r_in.Epsilon, 10, 20000);
-                printf("in main. chek: %g \n", chek);
-                chek = test_hits_vs_probs_1_step(fptest, p1[j], p1[j], r_in.Epsilon, 10, 20000);
-                printf("in main. chek: %g \n", chek);
-           
-                p1[j+1] = copy_perm(p1[j]);
-            
-                for (i=0; i<r_in.N_rev_fake; i++){ // generate p1 from p2 by random reverses
-                    get_CD(p1[j+1], p1[j+1], &the_cd);
-                    (void)rand_reverse_r(p1[j+1], r_in.lambda_ratio_fake, &prob, the_cd.elements);
-                }     
-            }
-        }
+    seedrand(r_in.Rand_seed);  
         
-
         printf("****************************\n");
         print_perm(stdout, p1[0]);
         print_perm(stdout, p2[0]);
-        {
-                //   int flips_by_number[NMARKERMAX];
-            
+        {   
             Cycle_decomposition a_cd;
             get_CD(p1[0], p2[0], &a_cd);
             printf("N, M, c_i, c_g: %i %i %i %i \n", a_cd.n_mark, a_cd.n_chrom, a_cd.n_int_cycles, a_cd.c_g);
             get_CD(p2[0], p1[0], &a_cd);
             printf("N, M, c_i, c_g: %i %i %i %i \n", a_cd.n_mark, a_cd.n_chrom, a_cd.n_int_cycles, a_cd.c_g);
-           /*  print_perm(stdout, p1[0]); */
-/*             print_perm(stdout, p2[0]); */
-/*             printf("before get_conserved_flips\n"); */
-/*             get_conserved_flips(p1[0], p2[0], flips_by_number); */
-/*             printf("between get_conserved_flips, flip_signs_by_number\n"); */
-/*             flip_signs_by_number(p2[0], flips_by_number); */
-/*             printf("after flips_signs_by_number.\n"); */
-/*             print_perm(stdout, p2[0]); */
-/*                  getchar(); */
         }
        
-            // for each data set, run a bunch of chains to convergence
-        for (j=0; j<r_in.N_data; j++)
-        {
-            printf("data set %i out of %i \n", j+1, r_in.N_data);
-               
-                // n_conv = run_chains(p1[j], p2[j], &r_in, &cpu_time, METROPOLIS_HASTINGS);
-            
-                // genomes same, but rng seed changes
-                // "forward"
-          /*   if(RUNCHOLD){ */
-/*                 printf("about to call run_chains. \n"); //getchar(); */
-/*                 n_conv = run_chains(p1[j], p2[j], &r_in, &cpu_time); */
-/*             } */
-/*             else */
-            {
-                
+            // run N_chains  chains to convergence
+	j=0; // used to be able to analyze multiple data sets in a single run
+	// and j indexed the data set.
+     
+            {               
                     //   printf("about to call run_chains_new. \n"); getchar();
-
 	      print_perm(stdout, p1[j]);
 	      print_perm(stdout, p2[j]);
               the_chain_set = construct_chain_set(p1[j], p2[j], &r_in);
@@ -304,6 +250,7 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
               
                 n_conv = run_chains_new(the_chain_set, &r_in, &cpu_time);
             }
+	    
              // "backward"
              //      n_conv = run_chains(p2[j], p1[j], &r_in, &cpu_time);
             Nconv[j] = n_conv;
@@ -314,12 +261,12 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
             fflush(NULL);
                 //   printf("bottom of loop\n");
              
-        } // end of loop over N_data data sets
+	    //  } // end of loop over N_data data sets
         qsort(Nconv, r_in.N_data, sizeof(int), compare_ints);
         qsort(tconv, r_in.N_data, sizeof(double), compare_doubles);
 	for(j=0; j<r_in.N_data; j++){
 	  printf("j, Nconv[j]: %i %i \n", j, Nconv[j]);
-	  Nconvdists[iiii][j] = Nconv[j];
+	  Nconvdists[0][j] = Nconv[j];
         }
 	
          {
@@ -339,11 +286,6 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
         trmean /= (double)(3*r_in.N_data/4 - r_in.N_data/4);
         trmeant /= (double)(3*r_in.N_data/4 - r_in.N_data/4);
           
-
-            /* fprintf(fp_out9, "%10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g   %10g %10g\n", */
-	    /* 	    r_in.Epsilon, */
-            /*         n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean, q1, median, q3, trmean, */
-            /*         t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean, q1t, mediant, q3t, trmeant); */
             printf("MC iterations to convergence: ");
             print_stats(stdout, n_conv_histogram->stats);
             printf("CPU time to convergence: ");
@@ -358,18 +300,11 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
             /*         r_in.N_data, (int)n_conv_histogram->stats->N, n_conv_histogram->stats->mean, n_conv_histogram->stats->stddev_mean, */
             /*         t_conv_histogram->stats->mean, t_conv_histogram->stats->stddev_mean); */
 	 }
-    }// end of loop over parameter to vary   
+	 //}// end of loop over parameter to vary   
       
     for (j=0; j<r_in.N_data; j++){          
         permfree(&p1[j]); permfree(&p2[j]);
     }
-
-    // print out burn-in info
-    /* for (j=0; j<r_in.N_data; j++){ */
-    /*   for(iiii=0; iiii<NPARAMVALS; iiii++){ */
-    /* 	fprintf(fp_out10, "%12g   %8d \n", epsilonstodo[iiii], Nconvdists[iiii][j]); */
-    /*   } */
-    /* } */
     
     t_mainstop = GETCPUTIME;
     printf("number of path updates with log_p_a not(normal or zero): %i \n", n_path_p_a_nnoz);
@@ -385,31 +320,6 @@ for(iiii=0; iiii<NPARAMVALS; iiii++){ // loop over values of parameter, to study
     printf("%g\n", (get_CD_clocks/get_CD_calls)/(get_CD_old_clocks/get_CD_old_calls));
     
     check_alloc_info(stdout);
-        
-  /*   for(i=0; i<3; i++){ */
-/*         printf("%4i %8i %8i \n", i, delta_m_req[i], delta_ci_prop[i]); */
-/*     } */
-/*      for(i=0; i<3; i++){ */
-/*           for(j=0; j<3; j++){ */
-/*               printf("%8i ", dmci[i][j]); */
-/*           }printf("\n"); */
-/*      } */
-
-/*      for(i=0; i<3; i++){ */
-/*          for(j=0; j<7; j++){ */
-/*              printf("%6i ", dci_nb_m1[i][j]); */
-/*          }printf("\n"); */
-/*      }printf("\n"); */
-/*       for(i=0; i<3; i++){ */
-/*          for(j=0; j<7; j++){ */
-/*              printf("%6i ", dci_nb_0[i][j]); */
-/*          }printf("\n"); */
-/*       }printf("\n"); */
-/*       for(i=0; i<3; i++){ */
-/*          for(j=0; j<7; j++){ */
-/*              printf("%6i ", dci_nb_1[i][j]); */
-/*          }printf("\n"); */
-/*      }  */
    
     {
         int ijk; FILE* fpx;
