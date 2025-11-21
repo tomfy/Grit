@@ -17,13 +17,14 @@
 #include "gr_misc.h"
 #include "run_chains.h"
 
-int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cpu_time)
+long run_chains(Chain_set* the_chain_set, const Run_info_in* r_in, long* cpu_time)
 { 
         // updates the chains in the_chain_set many times
         // returns # of updates done to each chain
 
-    int ii, iii, steps_so_far, runlength;
-    double tstop, tstart, tnow; long tmin, tsec;
+    int steps_so_far, runlength;
+    long tstop, tstart, tnow;
+    //long tmin, tsec;
     Path_tree* path_tree;
     double p_accept_mc3;
     int n_mc3_swap[MAX_N_TEMPERATURES] = {0}, n_mc3_swap_try = 0;
@@ -39,20 +40,20 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
     FILE* fp_paths = fopen("pathT0.out", "w");
 
     
-        // ******************  initialization section ******************
+  // ******************  initialization section ******************
     path_tree = alloc_path_tree();
     if(r_in->Burn_in > 0){ runlength = r_in->Burn_in*r_in->Stop_at; }
     else runlength = r_in->Max_runlength;
- 
-        //  ****************** end of initialization ******************   
-        //  ****************** start iterating chains ******************
+  //  ****************** end of initialization ******************   
+
+  //  ****************** start iterating chains ******************
     
-    tstart = GETCPUTIME;
+    tstart = time(NULL); // GETCPUTIME;
     steps_so_far = 0;
       
     do{  // once through this loop does 1 update to each of N_temperatures*N_chain chains
-        for (ii = 0; ii<r_in->N_chain; ii++){              
-            for(iii=0; iii<r_in->N_temperatures; iii++){
+        for (long ii=0; ii<r_in->N_chain; ii++){              
+            for(long iii=0; iii<r_in->N_temperatures; iii++){
                 if(WRITERAW && (steps_so_far % WRITERAWEVERY == 0) && (ii == 0)) {
                     fprintf(fp_raw[iii], "\n %i ", steps_so_far);
                 }
@@ -90,9 +91,9 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
 
              // do the metropolis-coupled mcmc swapping between chains at different temperatures
         if(r_in->Do_MC3_swap == TRUE) {
-            for(ii=0; ii<r_in->N_chain; ii++){
+            for(long ii=0; ii<r_in->N_chain; ii++){
                 n_mc3_swap_try++;
-                for(iii=0; iii<r_in->N_temperatures-1; iii++){
+                for(long iii=0; iii<r_in->N_temperatures-1; iii++){
                     the_state = the_chain_set->chain[ii][iii]->state;
                           the_path = the_state->path; // needed? Yes.
                     other_state = the_chain_set->chain[ii][iii+1]->state;
@@ -128,16 +129,16 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
             
         steps_so_far++;
         if(steps_so_far - last_print_n_steps >= 10 && steps_so_far > 1.02*(double)last_print_n_steps){ // print some stuff to stdout
-            tnow = GETCPUTIME;
-                //   printf("CPU time used: %g \n", tnow - tstart);
-            tmin = (long)(tnow - tstart)/60;
-            tsec =  (long)(tnow - tstart) - 60*tmin;
+	  tnow = time(NULL); //GETCPUTIME;
+            /*     //   printf("CPU time used: %g \n", tnow - tstart); */
+            /* tmin = (long)(tnow - tstart)/60; */
+            /* tsec =  (long)(tnow - tstart) - 60*tmin; */
                 //   printf("cpu time so far (min:sec): %i:%i \n", tmin, tsec);
             
-            printf("\nUpdates: %i   CPU time so far (min:sec): %i:%i\n", steps_so_far, tmin, tsec);    
+            printf("\nUpdates: %i   CPU time so far (min:sec): %ld\n", steps_so_far, tnow-tstart);    
             if(r_in->N_temperatures > 1) {
                 printf("    MCMCMC swaps: ");
-                for(iii=0; iii<r_in->N_temperatures-1; iii++){
+                for(long iii=0; iii<r_in->N_temperatures-1; iii++){
                     printf(" %i ", n_mc3_swap[iii]);
                 } printf("Out of: %i", n_mc3_swap_try);
             }printf("\n");
@@ -145,8 +146,8 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
             {
                 double n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_r = 0.0;
                 printf("     T  P_a's:    path    lambdaI    lambdaT    r/xi \n"); 
-                for(iii=0; iii<r_in->N_temperatures; iii++){
-                    for(ii=0; ii<r_in->N_chain; ii++){
+                for(long iii=0; iii<r_in->N_temperatures; iii++){
+                    for(long ii=0; ii<r_in->N_chain; ii++){
                         n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_r = 0.0;
                         the_chain = the_chain_set->chain[ii][iii];
                         n_step += the_chain->N_steps_so_far;
@@ -167,7 +168,7 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
             }
             
             printf("     T,   Avg:   L,        L_i,      L_t,      lambdaI,    lambdaT \n");
-            for(iii=0; iii<r_in->N_temperatures; iii++){
+            for(long iii=0; iii<r_in->N_temperatures; iii++){
                 printf("%8g      %8g  %8g  %8g  %10g  %10g\n", the_chain_set->chain[0][iii]->temperature, 
                        the_chain_set->Avg_L[iii],
                        the_chain_set->Avg_Li[iii],
@@ -177,7 +178,7 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
             }
                
             printf("     T,   B/W:   L,        L_i,      L_t,      lambdaI,    lambdaT \n"); 
-            for(iii=0; iii<r_in->N_temperatures; iii++){
+            for(long iii=0; iii<r_in->N_temperatures; iii++){
                 printf("%8g      %8g  %8g  %8g  %10g  %10g\n", the_chain_set->chain[0][iii]->temperature, 
                        BoW_L = BoW(the_chain_set->B_L[iii], the_chain_set->W_L[iii]),
                        BoW_Li = BoW(the_chain_set->B_Li[iii], the_chain_set->W_Li[iii]),
@@ -191,9 +192,7 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
                                     (BoW_lambdaI < BoW_Burn_in) &&
                                     (BoW_lambdaT < BoW_Burn_in)) ) ){
                         runlength = r_in->Stop_at*steps_so_far;
-                            //  runlength = (steps_so_far > r_in->Min_burn_in_length)? r_in->Stop_at*steps_so_far: r_in->Stop_at*r_in->Min_burn_in_length;
-                        
-                        
+                            //  runlength = (steps_so_far > r_in->Min_burn_in_length)? r_in->Stop_at*steps_so_far: r_in->Stop_at*r_in->Min_burn_in_length;                    
                         printf("*************  Burn-in done at %i updates.  ****************** \n", steps_so_far);
                             //  getchar();
                     }
@@ -203,29 +202,27 @@ int run_chains_new(Chain_set* the_chain_set, const Run_info_in* r_in, double* cp
           
 
             printf("    L_min: \n");
-            for(iii=0; iii<r_in->N_temperatures; iii++){
-                for(ii=0; ii<r_in->N_chain; ii++){ printf(" %3i ", the_chain_set->chain[ii][iii]->L_min);} printf("\n");
+            for(long iii=0; iii<r_in->N_temperatures; iii++){
+                for(long ii=0; ii<r_in->N_chain; ii++){ printf(" %3i ", the_chain_set->chain[ii][iii]->L_min);} printf("\n");
             } // printf("\n");
             printf("    L_t_min: \n");
-            for(iii=0; iii<r_in->N_temperatures; iii++){
-                for(ii=0; ii<r_in->N_chain; ii++){ printf(" %3i ", the_chain_set->chain[ii][iii]->L_t_min);} printf("\n");
+            for(long iii=0; iii<r_in->N_temperatures; iii++){
+                for(long ii=0; ii<r_in->N_chain; ii++){ printf(" %3i ", the_chain_set->chain[ii][iii]->L_t_min);} printf("\n");
             } // printf("\n");
-
-          
-            
+           
             last_print_n_steps = steps_so_far;
         }
     }
     while (steps_so_far < runlength && !sigint_raised); // if sigint_raised (i.e. if control-c has been pressed), bail out here
-    tstop = GETCPUTIME; 
-    *cpu_time = tstop - tstart;
+    tstop = time(NULL); // GETCPUTIME; 
+    *cpu_time = (double)(tstop - tstart);
         // ****************** end of chain iteration section ******************
     
 /*   fprintf(fp_out4, "Paths with length <= %i, and number of hits for each: \n", MAXSHORTPATHLENGTH); */
 /*         print_path_tree(fp_out4, path_tree, TRUE); */
  
     return steps_so_far;
-} // end of run_chains_new
+} // end of run_chains
 
 double BoW(double B, double W)
 {

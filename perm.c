@@ -2006,8 +2006,6 @@ get_spec_dcg1_rev(Cycle_decomposition* the_cd, int n, int type)
 int
 get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
 {
-    int zzz = 43;
-   
         // if Use_distances is TRUE and
         // if first genome in file has distances uses them, and
         // spaces markers in second genome equally along genome, with
@@ -2029,9 +2027,6 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
     double L_g, marker_spacing;
     int n_edge;
     char tbuf[500];
-
-    printf("XXXXX  \n");
-    
 
         /*  printf("XXXXXXXXXXXXX \n"); */
 /*     printf("%i %i %i \n", Total_N_markers, N_genomes, N_chromosomes); */
@@ -2066,7 +2061,6 @@ get_genomes_from_file(FILE* fp, Permutation** genomes, int Use_distances)
             else{
                     //   chromosome_length[j] = N_markers[i][j]+1; 
 	      fscanf(fp, "%s %i", tempstr, &i_chromosome); // read number of this chromosome
-	      printf("AAAAAAAAAAAAAAAAA\n");
 	      printf("tempstr chromosome#, j: [%s]   %i %i\n", tempstr, i_chromosome, j);
             } 
                 // if(i_chromosome != j+1)

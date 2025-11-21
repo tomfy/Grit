@@ -76,7 +76,7 @@
 #define RANDF rand
 #define SEEDRAND srand
 #define WAITFORKEY ;   //  do nothing
-#define GETCPUTIME (0.0)  // get_CPU_time()
+#define GETCPUTIME  (get_CPU_time())
 // double get_CPU_time();
 #define SM_FACT 10.0 // number to multiply DBL_EPSILON ( = 2.22e-16) by when checking that something is small)
 
@@ -122,5 +122,6 @@ int compare_ints(const void* aa, const void* bb);
 int compare_doubles(const void* aa, const void* bb);
 double trimean(const int* array, int n);
 double rmean(int* Nconv, int n, double* sigma, double f);
+void print_other_output(void);
 
 // end of grit.h
