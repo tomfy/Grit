@@ -21,8 +21,8 @@ Reversal r_init = {UNKNOWN,/*  UNKNOWN, */ UNKNOWN, UNKNOWN,
                    
 extern unsigned long rng_long; // defined in rngs.c, just declare extern here and in exts.h
 int Error_count = 0; 
-FILE* fp_in;
-FILE* fp_out1, * fp_out2, * fp_out3, * fp_out4, * fp_out5, * fp_out6, * fp_out7, * fp_out8, * fp_out9, * fp_out10, * fp_rawhot, * fp_rawq;
+// FILE* fp_in;
+FILE * fp_out2, * fp_out8, * fp_out9, * fp_out10, * fp_rawhot, * fp_rawq;
 FILE* fp_raw[MAX_N_TEMPERATURES]; 
 FILE* fp_LiLtout, * fp_lambdaIlambdaTout;
 int sigint_raised = 0; // flag; FALSE to start, TRUE after SIGINT signal handled
