@@ -187,9 +187,8 @@ typedef struct state{
     int Mode; // 0 no uniformization, fixed Lambda, etc. 
 }State;
 
-
 typedef struct run_info_in{
-    char Genome_data_file[64]; // name of file containing description of genomes
+    char* Genome_data_file; // name of file containing description of genomes
     int Use_distances; // Whether to make use of distance information (if present in the file)
     int N_rev_fake; // if > 0 is number of inversions/translocations to do to produce fake data; else use data from file as is
     double lambda_ratio_fake; // generate fake data with this value as ratio of inversion rate to translocation rate (lambdaI/lambdaT)

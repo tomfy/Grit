@@ -923,56 +923,57 @@ void check_run_params(const Run_info_in* r_in)
   } 
 } // end of check_run_params 
 
-
-
 void input_run_params(FILE* fp, Run_info_in* r_in) 
 {
-    fscanf(fp, "%*s%s %*s%i %*s%i %*s%lf %*s%i %*s%i",  
-           r_in->Genome_data_file,
-           &r_in->Use_distances, 
-           &r_in->N_rev_fake,
-           &r_in->lambda_ratio_fake, 
-           &r_in->N_chain,
-           &r_in->N_data);
-    fscanf(fp, "%*s%i  %*s%lf %*s%lf",
-           &r_in->Update_lambdas_mode,
-           &r_in->Lambda,
-           &r_in->lambda_max);
-    r_in->Lambda_max = UNKNOWN; // gets set in grit.c
+  r_in->Genome_data_file = (char*)malloc(sizeof(char)*128);
+  fscanf(fp, "%*s%s %*s%i %*s%i %*s%lf %*s%i %*s%i",
+	 //temp_data_filename,
+	 r_in->Genome_data_file,
+	 &r_in->Use_distances, 
+	 &r_in->N_rev_fake,
+	 &r_in->lambda_ratio_fake, 
+	 &r_in->N_chain,
+	 &r_in->N_data);
+  fscanf(fp, "%*s%i  %*s%lf %*s%lf",
+	 &r_in->Update_lambdas_mode,
+	 &r_in->Lambda,
+	 &r_in->lambda_max);
     
-    fscanf(fp, "%*s%lf  %*s%lf  %*s%lf ", 
-               //    &r_in->Epsilon_init_long, &r_in->Epsilon_init_short,
-           &r_in->Epsilon,
-           &r_in->Init_long_param, &r_in->Init_long_sf_param);
+  r_in->Lambda_max = UNKNOWN; // gets set in grit.c
+    
+  fscanf(fp, "%*s%lf  %*s%lf  %*s%lf ", 
+	 //    &r_in->Epsilon_init_long, &r_in->Epsilon_init_short,
+	 &r_in->Epsilon,
+	 &r_in->Init_long_param, &r_in->Init_long_sf_param);
 
    
-     fscanf(fp, "%*s%i  %*s%lf  %*s%lf  %*s%i %*s%i ", 
-               //    &r_in->Epsilon_init_long, &r_in->Epsilon_init_short,
-           &r_in->N_temperatures, &r_in->T_cold, &r_in->T_hot, 
-           &r_in->Do_MC3_swap, &r_in->MC3_max_pathlength); 
+  fscanf(fp, "%*s%i  %*s%lf  %*s%lf  %*s%i %*s%i ", 
+	 //    &r_in->Epsilon_init_long, &r_in->Epsilon_init_short,
+	 &r_in->N_temperatures, &r_in->T_cold, &r_in->T_hot, 
+	 &r_in->Do_MC3_swap, &r_in->MC3_max_pathlength); 
 
-    fscanf(fp, "%*s%lf %*s%lf  %*s%lf %*s%lf  %*s%lf  %*s%lf %*s%lf   %*s%i %*s%i %*s%i %*s%i",
-           &r_in->Conv_srh,
-           &r_in->Conv_srh_half2,
-           &r_in->Conv_Ldist,
-           &r_in->Conv_Lambdadist,
-           &r_in->Conv_rdist,
-           &r_in->Conv_lambdaIdist,
-           &r_in->Conv_lambdaTdist,
-           &r_in->Burn_in,
-           &r_in->Stop_at,
-           &r_in->Min_burn_in_length,
-           &r_in->Max_runlength);
+  fscanf(fp, "%*s%lf %*s%lf  %*s%lf %*s%lf  %*s%lf  %*s%lf %*s%lf   %*s%i %*s%i %*s%i %*s%i",
+	 &r_in->Conv_srh,
+	 &r_in->Conv_srh_half2,
+	 &r_in->Conv_Ldist,
+	 &r_in->Conv_Lambdadist,
+	 &r_in->Conv_rdist,
+	 &r_in->Conv_lambdaIdist,
+	 &r_in->Conv_lambdaTdist,
+	 &r_in->Burn_in,
+	 &r_in->Stop_at,
+	 &r_in->Min_burn_in_length,
+	 &r_in->Max_runlength);
 
-    fscanf(fp, "%*s%ld %*s%i  %*s%lf %*s%lf  %*s%i  %*s%lf",
-           &r_in->Rand_seed,
-           &r_in->L_prop_dist_type,
-           &r_in->Alpha,
-           &r_in->Xi,
-           &r_in->Choose_signs,
-               //          &r_in->Flip_some_sign_epsilon,
-           &r_in->Flip_one_sign_epsilon);
-    printf("in input_run_params. rand_seed: %i\n", r_in->Rand_seed);
+  fscanf(fp, "%*s%ld %*s%i  %*s%lf %*s%lf  %*s%i  %*s%lf",
+	 &r_in->Rand_seed,
+	 &r_in->L_prop_dist_type,
+	 &r_in->Alpha,
+	 &r_in->Xi,
+	 &r_in->Choose_signs,
+	 //          &r_in->Flip_some_sign_epsilon,
+	 &r_in->Flip_one_sign_epsilon);
+  printf("in input_run_params. rand_seed: %i\n", r_in->Rand_seed);
 } // end of input_run_paramss
 
 

@@ -1,5 +1,6 @@
 //  grit.c   main program
 #include <mcheck.h>
+#include <getopt.h>
 
 #include "grit.h"
 #include "params.h"
@@ -17,18 +18,91 @@
 
 Permutation* simulate_rearrangement(Permutation* p1, long N_sim_revs, double sim_lambda_ratio);
 
-int main()
+int
+main(int argc, char *argv[])
+// main()
 {
   long t_mainstart = time(NULL); // seconds from the epoch
   setvbuf(stdout, NULL, _IOLBF, BUFSIZ); // not sure what this does
+
+
+
+
+
+
+  //*******************************************************
+
+
+ // ***** process command line *****
+  /* if (argc < 2) { */
+  /*   fprintf(stderr, "Usage:  %s -in <dosages_file> [-out <output_filename> -nhgmr_max <max_nhgmr>] \n", argv[0]); */
+  /*   print_usage_info(stderr); */
+  /*   fprintf(stderr, "%d\n", (int)EXIT_FAILURE); */
+  /*   exit(EXIT_FAILURE); */
+  /* } */
+
+  char* cl_genomes_filename = NULL;
+  FILE *g_stream = NULL; // for reading in genotypes
+  char* cl_control_filename = NULL;
+  FILE *c_stream = NULL; // for reading in pedigrees (if specified)
+  char* output_prefix = "";
+  long cl_rng_seed = 0; // if left at this value, use value in control file.
+
+  int c;
+  while(1){
+    int option_index = 0;
+    static struct option long_options[] = {
+      {"control", required_argument, 0, 'c'}, // filename of control file 
+      {"data",   required_argument, 0,  'd'}, // filename of genomes data set   
+      {"output_prefix",  required_argument, 0,  'o'}, // output filename
+      {"seed", required_argument, 0, 's'}, // markers with > this fraction missing data will not be used.
+      {0,         0,                 0,  0 } // so will abort if unrecognized option
+    };
+     
+    c = getopt_long_only(argc, argv, "", long_options, &option_index);
+    printf("c: %i\n", c);
+    if(c == -1) break;
+    switch(c){
+    case 'c':
+      cl_control_filename = optarg;
+      break;
+    case 'd':
+      cl_genomes_filename = optarg;
+      break;
+    case 'o':
+      output_prefix = optarg;
+    case 's':
+      cl_rng_seed = atoi(optarg);
+      break;
+    case '?':
+      fprintf(stderr, "? case in command line processing switch.\n");
+      exit(EXIT_FAILURE);
+    default:
+      fprintf(stderr, "default case (abort)\n");
+      abort ();
+    }
+  }
+
+  printf("cl control file: %s\n", cl_control_filename);
+  printf("cl genomes file: %s\n", cl_genomes_filename);
+  printf("output prefix: %s\n", output_prefix);
+  printf("cl rng seed %ld\n", cl_rng_seed);
+  getchar();
+
+//  *********************************************************
+
+  char* control_filename = (cl_control_filename == NULL)? "grit_control" : cl_control_filename;
     
 //  ***************  read in parameters from control file  *****************
-  FILE* fp_control = fopen("grit_control", "r");
+  FILE* fp_control = fopen(control_filename, "r");
   Run_info_in r_in;
   if (fp_control != NULL){
     printf("before input_run_parms\n");
     input_run_params(fp_control, &r_in);
-    printf("Using input parameters read from file.\n");
+    //  ********   override control file values with command line values  *******
+    if(cl_genomes_filename != NULL) r_in.Genome_data_file = cl_genomes_filename;
+    if(cl_rng_seed != 0) r_in.Rand_seed = cl_rng_seed;
+    
     if(r_in.Rand_seed < 0){
       r_in.Rand_seed = time(NULL);  // time returns secs since epoch
       printf("Control file has negative value for Rand_seed.\n");
@@ -36,17 +110,23 @@ int main()
     }
     if(r_in.MC3_max_pathlength > MAXPATHLENGTH){ r_in.MC3_max_pathlength = MAXPATHLENGTH; }
     check_run_params(&r_in);
+    printf("seed: %ld\n", r_in.Rand_seed); getchar();
     seedrand(r_in.Rand_seed); 
-    output_run_params(stdout, &r_in); // getchar();
+  
   } else{ // no control file - fail.
-    printf("Couldn't open input file grit_control; exiting.\n");
+    printf("Couldn't open input file %s; exiting.\n", control_filename);
     exit(EXIT_FAILURE);
   }
   fclose(fp_control);
+
+  output_run_params(stdout, &r_in); // getchar();
+   
+  printf("Genomes data file: %s\n", r_in.Genome_data_file);
     
-//  ****************   Read in genome data from file  *******************
+//    ****************   Read in genome data from file  *******************
   printf("Genome input file: %s \n", r_in.Genome_data_file); 
   FILE* fp_data = fopen(r_in.Genome_data_file, "r");
+  if(fp_data == NULL){ printf("Couldn't open data file %s for reading. exiting\n", r_in.Genome_data_file); exit(EXIT_FAILURE); }
   Permutation* genomes[2];
   int distsinfile = get_genomes_from_file(fp_data, genomes, FALSE);
  
