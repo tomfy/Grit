@@ -3,18 +3,19 @@
 // #if COMPILER == LINUX_GCC
 // #include <sys/vtimes.h>
 // #endif
+#include <stdio.h>
+#include <time.h>
+#include <sys/types.h>
 
-#define NULL 0
+//#define NULL 0
 
-double get_CPU_time();
+double get_CPU_time(void);
 
 double
-get_CPU_time()
+get_CPU_time(void)
 {
-     return 0.0;
-    
-/*    struct vtimes vt;
-    vtimes(&vt, NULL);
-    return (double)(vt.vm_utime + vt.vm_stime)/(double)VTIMES_UNITS_PER_SECOND;
-*/
-    }
+  fprintf(stderr, "CCCCCCCCCCCC: %g  %g\n", (double)clock(), (double)CLOCKS_PER_SEC);
+  double x = (double)clock()/(double)CLOCKS_PER_SEC;
+  fprintf(stderr, "time (get_CPU_time): %g\n", x);
+  return x;
+}
