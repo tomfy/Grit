@@ -87,7 +87,7 @@ main(int argc, char *argv[])
   printf("cl genomes file: %s\n", cl_genomes_filename);
   printf("output prefix: %s\n", output_prefix);
   printf("cl rng seed %ld\n", cl_rng_seed);
-  getchar();
+  // getchar();
 
 //  *********************************************************
 
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
     }
     if(r_in.MC3_max_pathlength > MAXPATHLENGTH){ r_in.MC3_max_pathlength = MAXPATHLENGTH; }
     check_run_params(&r_in);
-    printf("seed: %ld\n", r_in.Rand_seed); getchar();
+    printf("seed: %ld\n", r_in.Rand_seed); //getchar();
     seedrand(r_in.Rand_seed); 
   
   } else{ // no control file - fail.
