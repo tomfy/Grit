@@ -964,14 +964,15 @@ void input_run_params(FILE* fp, Run_info_in* r_in)
            &r_in->Min_burn_in_length,
            &r_in->Max_runlength);
 
-    fscanf(fp, "%*s%i %*s%i  %*s%lf %*s%lf  %*s%i  %*s%lf",
+    fscanf(fp, "%*s%ld %*s%i  %*s%lf %*s%lf  %*s%i  %*s%lf",
            &r_in->Rand_seed,
            &r_in->L_prop_dist_type,
            &r_in->Alpha,
            &r_in->Xi,
            &r_in->Choose_signs,
                //          &r_in->Flip_some_sign_epsilon,
-           &r_in->Flip_one_sign_epsilon); 
+           &r_in->Flip_one_sign_epsilon);
+    printf("in input_run_params. rand_seed: %i\n", r_in->Rand_seed);
 } // end of input_run_paramss
 
 
