@@ -106,7 +106,7 @@ main(int argc, char *argv[])
   printf("cl rng seed %ld\n", cl_rng_seed);
   printf("cl choose signs: %i\n", cl_choose_signs);
   //   printf("cl unsigned flag: %i\n", cl_unsigned_flag);
-  getchar();
+  //getchar();
 
 //  *********************************************************
 
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
     //  ********   override control file values with command line values  *******
     if(cl_genomes_filename != NULL) r_in.Genome_data_file = cl_genomes_filename;
     if(cl_rng_seed != 0) r_in.Rand_seed = cl_rng_seed;
-    if(cl_choose_signs >= 0){ r_in.Choose_signs = cl_choose_signs; printf("r_in.Choose_signs: %d\n", (int)r_in.Choose_signs); getchar(); }
+    if(cl_choose_signs >= 0){ r_in.Choose_signs = cl_choose_signs; printf("r_in.Choose_signs: %d\n", (int)r_in.Choose_signs); }
     if(r_in.Rand_seed < 0){
       r_in.Rand_seed = time(NULL);  // time returns secs since epoch
       printf("Control file has negative value for Rand_seed.\n");
