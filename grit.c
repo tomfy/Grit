@@ -42,12 +42,15 @@ main(int argc, char *argv[])
   /* } */
 
   char* cl_genomes_filename = NULL;
-  FILE *g_stream = NULL; // for reading in genotypes
+  //FILE *g_stream = NULL; // for reading in genotypes
   char* cl_control_filename = NULL;
-  FILE *c_stream = NULL; // for reading in pedigrees (if specified)
+  //FILE *c_stream = NULL; // for reading in pedigrees (if specified)
   char* output_prefix = "";
   long cl_rng_seed = 0; // if left at this value, use value in control file.
-
+  // static int cl_signed_flag = -1; // 1: signed, 0: unsigned, other: use control file value
+  // static int cl_unsigned_flag = 0; // if set, unsigned, if neither set, use value in control file
+  int cl_choose_signs = -1;
+  
   int c;
   while(1){
     int option_index = 0;
@@ -55,11 +58,16 @@ main(int argc, char *argv[])
       {"control", required_argument, 0, 'c'}, // filename of control file 
       {"data",   required_argument, 0,  'd'}, // filename of genomes data set   
       {"output_prefix",  required_argument, 0,  'o'}, // output filename
-      {"seed", required_argument, 0, 's'}, // markers with > this fraction missing data will not be used.
+      {"prefix", required_argument, 0, 'o'}, 
+      {"seed", required_argument, 0, 'r'},
+      {"rng_seed", required_argument, 0, 'r'},
+      {"signed", no_argument, 0, 's'}, // --signed  set Choose_signs = 0  (i.e. signed)
+      {"unsigned", no_argument, 0, 'u'}, // --unsigned
       {0,         0,                 0,  0 } // so will abort if unrecognized option
     };
      
-    c = getopt_long_only(argc, argv, "", long_options, &option_index);
+    // c = getopt_long_only(argc, argv, "", long_options, &option_index);
+    c = getopt_long(argc, argv, "", long_options, &option_index);
     printf("c: %i\n", c);
     if(c == -1) break;
     switch(c){
@@ -71,23 +79,34 @@ main(int argc, char *argv[])
       break;
     case 'o':
       output_prefix = optarg;
-    case 's':
+    /* case 'r': */
+    /*   cl_rng_seed = atoi(optarg); */
+    /*   break; */
+    case 'r':
       cl_rng_seed = atoi(optarg);
       break;
+    case 's':
+      cl_choose_signs = 0; // 
+      break;
+    case 'u':
+      cl_choose_signs = 3;
+      break;
     case '?':
-      fprintf(stderr, "? case in command line processing switch.\n");
+      fprintf(stderr, "? case in command line processing switch. Exiting\n");
       exit(EXIT_FAILURE);
     default:
-      fprintf(stderr, "default case (abort)\n");
-      abort ();
+      fprintf(stderr, "default case. Exiting.\n");
+      exit(EXIT_FAILURE);
     }
   }
 
   printf("cl control file: %s\n", cl_control_filename);
   printf("cl genomes file: %s\n", cl_genomes_filename);
-  printf("output prefix: %s\n", output_prefix);
+  printf("output filename prefix: %s\n", output_prefix);
   printf("cl rng seed %ld\n", cl_rng_seed);
-  // getchar();
+  printf("cl choose signs: %i\n", cl_choose_signs);
+  //   printf("cl unsigned flag: %i\n", cl_unsigned_flag);
+  getchar();
 
 //  *********************************************************
 
@@ -102,7 +121,7 @@ main(int argc, char *argv[])
     //  ********   override control file values with command line values  *******
     if(cl_genomes_filename != NULL) r_in.Genome_data_file = cl_genomes_filename;
     if(cl_rng_seed != 0) r_in.Rand_seed = cl_rng_seed;
-    
+    if(cl_choose_signs >= 0){ r_in.Choose_signs = cl_choose_signs; printf("r_in.Choose_signs: %d\n", (int)r_in.Choose_signs); getchar(); }
     if(r_in.Rand_seed < 0){
       r_in.Rand_seed = time(NULL);  // time returns secs since epoch
       printf("Control file has negative value for Rand_seed.\n");
@@ -167,7 +186,7 @@ main(int argc, char *argv[])
   char rawfilename[200];
   for(long i=0; i<r_in.N_temperatures; i++){
     // open files Raw1.out, Raw2.out etc. for Raw output from different T chains
-    sprintf(rawfilename, "T%iraw.out", (int)i);
+    sprintf(rawfilename, "%sT%iraw.out", output_prefix, (int)i);
     fp_raw[i] = fopen(rawfilename, "w");
     output_run_params(fp_raw[i], &r_in);
   }

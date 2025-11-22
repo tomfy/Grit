@@ -19,10 +19,6 @@
 #define LEFTTORIGHT TRUE
 //#define N_SIGNED_TO_TRY 100 // to get unsigned inversion distance, do this many signed perms (get_signs_short)
 
-// #define NOTSTOPPROB (4.0*Epsilon*Epsilon)  // moved to path.c
-// #define BETA 0.0 // moved to path.c
-// #define EPSILON2FACTOR 0.5 // moved to perm.c
-
 #define WRITERAW TRUE
 #define WRITERAWEVERY 8 // write raw data this often (every this many path updates)
 #define MYFPNORMAL 4  // Determined empirically. I don't know why FP_NORMAL is not defined (defined in math.h)
@@ -65,6 +61,7 @@
 #define MAC_GCC 2
 #define WINDOWS_BORLAND 3
 #define COMPILER LINUX_GCC
+#define _GNU_SOURCE
 
 #if COMPILER == LINUX_GCC
 
