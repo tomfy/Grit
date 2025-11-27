@@ -13,8 +13,6 @@ double
 flip_signs(const Run_info_in* r_in, Permutation* perm1old, Permutation* perm1new, Permutation* perm2, int* flips)
 {
         // flips signs in perm1new and returns probability ratio for flips q_signs_backward/q_signs_forward
-    int n;
-    double flip_probs[NMARKERMAX+1]; 
     double q_signs_forward, q_signs_backward, q_signs_ratio = -1;
     int choose_signs = r_in->Choose_signs;
         
@@ -204,16 +202,6 @@ fix_rev(Permutation* perm, Reversal* rev, int* flips_by_number)
 {
     int i, mnumb;
     int* numbs;
-    int* marker_numbers;
-    int checks;
-
- /*    printf("top of fix rev \n"); */
-/*     printf("rev->numbs: %i %i %i %i \n", */
-/*            rev->numbs[0], rev->numbs[1], */
-/*            rev->numbs[2], rev->numbs[3]); */
-/*     printf("rev->marker_numbers: %i %i %i %i \n", */
-/*            rev->marker_numbers[0], rev->marker_numbers[1], */
-/*            rev->marker_numbers[2], rev->marker_numbers[3]); */
         //  check_rev(16, rev);
     for(i=0, numbs = rev->numbs; i<4; i++, numbs++){
         if(*numbs != UNKNOWN){ // skip end markers (numbs[i] UNKNOWN)
