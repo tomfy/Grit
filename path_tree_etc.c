@@ -87,7 +87,7 @@ free_path_subtree(Path_tree_node* tree_node)
 
 
 Path_tree*
-alloc_path_tree()
+alloc_path_tree(void)
 { 
     Path_tree* tree;
  
