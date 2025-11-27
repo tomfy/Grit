@@ -21,6 +21,8 @@
 
 #define NODISTLL (n_edges*(n_edges-1))
 #define R_FIXED  (2.0)
+#define DEFAULT_OUTPUT_PATH  FALSE
+#define PRIOR_MEAN_LAMBDA  0.5
 
 double srh(double a)
 {
@@ -269,13 +271,13 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
     double L_g = state->path->start->perm->L_g;
     Four_doubles accepts = {0.0, 0.0, 0.0, 0.0};
     int iii, Nlambdaupdates = 4, Mode = r_in->Update_lambdas_mode, Nrupdates = 2;
-    double Iavg, Tavg, Ai_avg, At_avg;
+    double /*Iavg, Tavg,*/ Ai_avg, At_avg;
         //   double pi_ratio_1; // calculated using pi_ratio_gen, as a check
     int Nlambdaupdates_of_type;
         
     if(Mode == 3 || Mode == 7){
-        Iavg = get_n_inv_avg(state->path); // average over steps on path of n_inv; depends on path, not on lambdas 
-        Tavg = get_n_trans_avg(state->path); // average over steps on path of n_trans
+      //  Iavg = get_n_inv_avg(state->path); // average over steps on path of n_inv; depends on path, not on lambdas 
+      //  Tavg = get_n_trans_avg(state->path); // average over steps on path of n_trans
         Ai_avg = get_A_i_avg(state->path);
         At_avg = get_A_t_avg(state->path);
     }
@@ -284,8 +286,10 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
     Nlambdaupdates_of_type = Nlambdaupdates;
     for(iii=0; iii<Nlambdaupdates; iii++){    
       if(r_in->Update_lambdas_mode == 7){ // in mode 7, update cold-chain lambdas alternating between mode 3 and 6.
-            if(exponent == 1.0){ Mode = (iii%2 == 0)? 3: 6; Nlambdaupdates_of_type = Nlambdaupdates/2; }
-            else { Mode = 3; }
+	//  if(exponent == 1.0){
+	      Mode = (iii%2 == 0)? 3: 6;
+	      Nlambdaupdates_of_type = Nlambdaupdates/2;
+      //  } else { Mode = 3; } // hot chains - use mode 3, i.e. lambdaI and lambdaT updates, but no update_r (why?).
         }
         
             // Modes 0, 1; no uniformization (this calculation assumes r = 2)
@@ -301,9 +305,13 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
             // Modes 2, 3; use uniformization, lambdaI, lambdaT parametrization
         else if(Mode == 2){ return accepts;} // do nothing - leave lambdas as is
         else if(Mode == 3){
-            accepts.a += update_lambdaI(state->path, state->L, LAMBDA_I_STEP_WIDTH_COEFF*sqrt((double)(state->path->length_i + 1))/Ai_avg,
+            accepts.a += update_lambdaI(state->path, state->L,
+					// LAMBDA_I_STEP_WIDTH_COEFF*
+					r_in->LambdaI_width_coeff*sqrt((double)(state->path->length_i + 1))/Ai_avg,
                                         r_in->lambda_max, exponent)/(double)Nlambdaupdates_of_type;
-            accepts.b += update_lambdaT(state->path, state->L, LAMBDA_T_STEP_WIDTH_COEFF*sqrt((double)(state->path->length_t + 1))/At_avg,
+            accepts.b += update_lambdaT(state->path, state->L,
+					// LAMBDA_T_STEP_WIDTH_COEFF*
+					r_in->LambdaT_width_coeff*sqrt((double)(state->path->length_t + 1))/At_avg,
                                         r_in->lambda_max, exponent)/(double)Nlambdaupdates_of_type;     
         }
             // Modes 4, 5, 6; use uniformization, Lambda, r parametrization
@@ -315,7 +323,15 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
 
          /*    printf("length, length_a, lambdaI, lambdaT, : %i %i  %g %g \n", state->path->length, state->path->length_a, */
 /*                   state->L->lambdaI, state->L->lambdaT); */
-            state->L->Lambda = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
+	  state->L->Lambda = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
+
+	  /*  
+	    double Lambda_prop = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
+	    double lambdaI_prop, lambdaI_prop;
+	    get_lambdaIT_from_Lambda_xi(L_g, state->L->Lambda, state->L->xi, &(state->L->lambdaI), &(state->L->lambdaT));
+	    double log_prior_ratio = ((L_prop.lambdaI + L_prop.lambdaT) - (L->lambdaI + L->lambdaT))/PRIOR_MEAN_LAMBDA;  /* */
+
+	    
                 //  printf("after gibbs step for Lambda\n");
             accepts.c += 1.0/(double)Nlambdaupdates_of_type;
             get_lambdaIT_from_Lambda_xi(L_g, state->L->Lambda, state->L->xi, &(state->L->lambdaI), &(state->L->lambdaT));
@@ -325,8 +341,11 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
                 int ii;
 
                 for(ii=0; ii<Nrupdates; ii++){ // in params.h #define rUPDATE_MODE 1   , change to anything else to use xi parametrization
-                    if(rUPDATE_MODE == 1) accepts.d += update_r(state->path, state->L)/(double)(Nlambdaupdates_of_type*Nrupdates);
-                    else accepts.d += update_xi(state->path, state->L)/(double)(Nlambdaupdates_of_type*Nrupdates);         //  }
+		  if(rUPDATE_MODE == 1){
+		    accepts.d += update_r(state->path, state->L, r_in->r_step_width, exponent)/(double)(Nlambdaupdates_of_type*Nrupdates);
+		  } else {
+		    accepts.d += update_xi(state->path, state->L, exponent)/(double)(Nlambdaupdates_of_type*Nrupdates);
+		  }//  }
                 } // loop over Nrupdates MH r updates
             } // end of if Mode == 6
         } // end of if Mode >= 5
@@ -347,7 +366,7 @@ print_Lambdas(Lambdas* L)
 
 
 double
-test_trans_sym(int size, long trans[][100])
+test_trans_sym(int size, long** trans)
 {
     int i, j;
     double result = 0.0; long dof = (long)((size-1)*(size-2)/2);
@@ -364,16 +383,14 @@ test_trans_sym(int size, long trans[][100])
 }
 
 
-State**
+/*  State**
 get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n_short, int n_long, int max_path_length)
 {
   State** the_state = (State**)chcalloc(r_in->N_chain, sizeof(State*)); // alloc array of pointers to the N_chain states
     int ii;
     double Epsilon_init;
     int flips[NMARKERMAX];
-        //  double flip_probs[NMARKERMAX];
-    int sum1=0, sum2=0, sum3 = 0, n_intermed = r_in->N_chain - (n_short + n_long), i_intermed;
-        //   int length_t, length_f, length_a;
+    int sum1=0, sum2=0, sum3 = 0;
     static unsigned long firstseed;
     static int first = TRUE;
     unsigned long saveseed = rng_long;
@@ -412,7 +429,7 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
     ii=0;
     while(ii<r_in->N_chain){
         
-        i_intermed = ii - (n_short + n_long);
+      // i_intermed = ii - (n_short + n_long);
         if(r_in->Choose_signs > 0) { // unsigned case; good signs for short init paths, randomize signs for long init paths
            
             if (ii == 0) printf("Optimizing signs of p1 for short initial paths. \n");
@@ -446,7 +463,7 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
         else { // intermediate length initial paths
             Epsilon_init = 0.5*(0.5*Lest + (3.0/7.0)/(1.0 + sqrt((double)Lestmin)/r_in->Init_long_param)); // just avg of short and long cases for now
         }
-        if(UPDATE_PATHS || ii == 0 /* || r_in->N_rev_fake > 0 */){
+        if(UPDATE_PATHS || ii == 0 ){
 
                 // use INITLONGPATH_IPF*2*n_chrom as factor for preferring inversions over translocations in dd-0 or 1 steps in
                 // initial path generation. This mean extra steps in long paths due to dd=0 or 1 (from larger epsilon)
@@ -468,7 +485,7 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
                 printf("path length, length_t, length_i, L, L_t, L_i: %i %i %i   %i %i %i \n",
                        the_state[ii]->path->length, the_state[ii]->path->length_t,  the_state[ii]->path->length_i,
                        the_state[ii]->path->L, the_state[ii]->path->L_t, the_state[ii]->path->L_i);     
-                if(ii < n_short /*  && ii%2 == 0 */){ // shorten /* half of */ the "short" init paths by removing loops
+                if(ii < n_short ){ // shorten the "short" init paths by removing loops
                         // shorten_path(the_state[ii]->path);
                 }
                 get_LLiLt(the_state[ii]->path);
@@ -485,17 +502,17 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
                 printf("ii: %i . the_state[ii]->L->lambdaI/T %g %g \n",
                        ii, the_state[ii]->L->lambdaI, the_state[ii]->L->lambdaT); 
                 add_dummies(the_state[ii]->path, the_state[ii]->L);
-                printf("L_a: %i \n", the_state[ii]->path->length_a);
+                // printf("L_a: %i \n", the_state[ii]->path->length_a);
                     // getchar();
                 get_LLiLt(the_state[ii]->path);
                 the_state[ii]->path->fission_factor = get_fission_factor(the_state[ii]->path);
                 the_state[ii]->path->swap_end_factor = get_swap_end_factor(the_state[ii]->path);
                 printf("in get_init_states, fission_factor: %g \n", the_state[ii]->path->fission_factor);  fflush(stdout);
                 {
-                    int check_path_lens, check_path_consist;
+		  //int check_path_lens, check_path_consist;
                     printf("lengths before, after shortening: %i \n", the_state[ii]->path->length); fflush(stdout);
-                    check_path_lens = (check_path_lengths(the_state[ii]->path) == TRUE);
-                    check_path_consist = (check_path_consistency_multi(the_state[ii]->path) == 0); // checks that perms and reversals along path are consistent
+                    //check_path_lens = (check_path_lengths(the_state[ii]->path) == TRUE);
+                    //check_path_consist = (check_path_consistency_multi(the_state[ii]->path) == 0); // checks that perms and reversals along path are consistent
                     printf("in get_init_state, after check_path_consistency...\n"); fflush(stdout);
                 }
                 ii++;   
@@ -519,17 +536,9 @@ get_init_states(Permutation* p1, Permutation* p2, const Run_info_in* r_in, int n
     } //fprintf(stdout, "\n"); // end loop over chains     
   
     seedrand(saveseed); // restore rng
-
-  /*   { */
-/*         int ijk; */
-/*         printf("Ntrans a,b: %g %g \n", (double)trans_a/r_in->N_chain, (double)trans_b/r_in->N_chain); */
-/*          for(ijk=0; ijk<20; ijk++){ */
-/*             fprintf(stdout, "%g %i %i \n", 0.05*(ijk+0.5), zeta_hist_a[ijk], zeta_hist_b[ijk]); */
-/*          }fprintf(stdout, "\n"); getchar(); */
-/*     } */
     return the_state;
 } // end of get_init_states
-
+/* */
 
 Chain_set*
 construct_chain_set(const Permutation* p1, const Permutation* p2, const Run_info_in* r_in)
@@ -549,11 +558,11 @@ construct_chain_set(const Permutation* p1, const Permutation* p2, const Run_info
       the_set->chain[i] = (Chain**)chcalloc(the_set->N_temperatures, sizeof(Chain*));
         Temperature = r_in->T_cold;
        printf("i,j,Temperature: %i %i %g \n", i, 0, Temperature); 
-        the_set->chain[i][0] = construct_chain(p1, p2, r_in, i<NSHORT, Temperature);
+        the_set->chain[i][0] = construct_chain(p1, p2, r_in, i<r_in->N_short_chains, Temperature);
         for(j=1; j<the_set->N_temperatures; j++){
              Temperature += (r_in->T_hot - r_in->T_cold)/(double)(r_in->N_temperatures - 1);
             printf("i,j,Temperature: %i %i %g \n", i, j, Temperature);
-            the_set->chain[i][j] = construct_chain(p1, p2, r_in, i<NSHORT, Temperature);
+            the_set->chain[i][j] = construct_chain(p1, p2, r_in, i<r_in->N_short_chains, Temperature);
         }
     }
         // allocate histograms
@@ -651,7 +660,7 @@ construct_chain(const Permutation* p1in, const Permutation* p2in, const Run_info
         }
         if(a_path->length < r_in->MC3_max_pathlength){
             the_state->path = a_path;
-	    fprintf(stderr, "L_a: %ld\n", a_path->length); //getchar();
+	    // fprintf(stderr, "L_a: %ld\n", a_path->length); //getchar();
                
             get_LLiLt(the_state->path); // get L, L_i, L_t, i.e. lengths not counting within equivalence class transitions
             {
@@ -666,17 +675,17 @@ construct_chain(const Permutation* p1in, const Permutation* p2in, const Run_info
             initialize_lambdas(the_state, r_in);
           
             add_dummies(the_state->path, the_state->L);
-            printf("L_a: %i \n", the_state->path->length_a);  //getchar();
+            // printf("L_a: %i \n", the_state->path->length_a);  //getchar();
                    
             get_LLiLt(the_state->path);
             the_state->path->fission_factor = get_fission_factor(the_state->path);
             the_state->path->swap_end_factor = get_swap_end_factor(the_state->path);
             printf("in construct_chain, fission_factor: %g \n", the_state->path->fission_factor);  fflush(stdout);
             {
-                int check_path_lens, check_path_consist;
+	      //int check_path_lens, check_path_consist;
                 printf("lengths before, after shortening: %i \n", the_state->path->length); fflush(stdout);
-                check_path_lens = (check_path_lengths(the_state->path) == TRUE);
-                check_path_consist = (check_path_consistency_multi(the_state->path) == 0); // checks that perms and reversals along path are consistent
+                //check_path_lens = (check_path_lengths(the_state->path) == TRUE);
+                //check_path_consist = (check_path_consistency_multi(the_state->path) == 0); // checks that perms and reversals along path are consistent
                 printf("in get_init_state, after check_path_consistency...\n"); fflush(stdout);
             }
             done = TRUE;
@@ -723,6 +732,7 @@ update_chain(Chain* the_chain, const Run_info_in* r_in)
     the_chain->n_acc_lambdaI += lambda_accepts.a;
     the_chain->n_acc_lambdaT += lambda_accepts.b;
     the_chain->n_acc_r += lambda_accepts.d;
+    //printf("chain T, n_acc_r: %g %g\n", the_chain->temperature, the_chain->n_acc_r);
     the_chain->n_acc_Lambda += lambda_accepts.c;
                 
     if(UPDATE_PATHS){
@@ -754,8 +764,8 @@ update_chain(Chain* the_chain, const Run_info_in* r_in)
   
 } // end of update_chain
 
-inline double
-within_chain_variance(int N, double sumX, double sumXsqr)
+//inline
+double within_chain_variance(int N, double sumX, double sumXsqr)
 {
     double avgX = sumX/(double)N;
     double avgXsqr = sumXsqr/(double)N;
@@ -973,7 +983,12 @@ void input_run_params(FILE* fp, Run_info_in* r_in)
 	 &r_in->Choose_signs,
 	 //          &r_in->Flip_some_sign_epsilon,
 	 &r_in->Flip_one_sign_epsilon);
-  printf("in input_run_params. rand_seed: %i\n", r_in->Rand_seed);
+  r_in->Output_paths = DEFAULT_OUTPUT_PATH;
+  r_in->LambdaI_width_coeff = LAMBDA_I_STEP_WIDTH_COEFF;
+  r_in->LambdaT_width_coeff = LAMBDA_T_STEP_WIDTH_COEFF;
+  r_in->r_step_width = r_STEP_WIDTH;
+  r_in->N_short_chains = r_in->N_chain/2; 
+  // printf("in input_run_params. rand_seed: %i\n", r_in->Rand_seed); //getchar();
 } // end of input_run_paramss
 
 
@@ -1116,20 +1131,18 @@ void output5_old(FILE* fp, int steps_so_far, int i, double** cumeL, int N_chain)
 void output5(FILE* fp, int steps_so_far, int i, double** cumeL, double** cumeLambda, int* Lengths, int N_chain)
 {        // output chain_averages stuff
     int ii, half_index;
-    double L2;
-     
     fprintf(fp, "%i  ", steps_so_far);
     for(ii=0; ii<N_chain; ii++){
         half_index = i - N_DOUBLE;
         if(half_index >= N_DOUBLE){
-            L2 = (cumeL[i][ii]-cumeL[half_index][ii])*(2.0/steps_so_far);
+	  //L2 = (cumeL[i][ii]-cumeL[half_index][ii])*(2.0/steps_so_far);
         }
         else if(i == 0){
-            L2 = cumeL[i][ii];
+	  //L2 = cumeL[i][ii];
         }
         else {
             half_index = (i+1)/2 - 1;         
-            L2 = (cumeL[i][ii]-cumeL[half_index][ii])/(NAVG0*(i-half_index));
+            //L2 = (cumeL[i][ii]-cumeL[half_index][ii])/(NAVG0*(i-half_index));
         }
         fprintf(fp, "%i %g %g ", Lengths[ii], cumeL[i][ii]/steps_so_far, cumeLambda[i][ii]/steps_so_far);
     }fprintf(fp, "\n");
@@ -1267,15 +1280,15 @@ path_array_insert(Path* path_array[], int count_array[], Path* path) // like pat
 } // end of path_array_insert
 
 
-inline int
-update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, double exponent)
+//inline
+int update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, double exponent)
 {
         // if ITselect is 0 updates lambdaI, else updates lambdaT
         // ITavg should be Iavg if updating lambdaI, else Tavg.
         // returns 1 if update accepted, 0 otherwise
     Lambdas L_prop = *L;
     double log_pi_ratio, log_p_accept;
-    int NpM = path->start->perm->n_edge;
+    //    int NpM = path->start->perm->n_edge;
     double L_g = path->start->perm->L_g;
     int result; 
 
@@ -1293,6 +1306,8 @@ update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, do
         + log(L_prop.lambdaI/L->lambdaI)*(double)path->length_i
         + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
 
+    log_pi_ratio += (L->lambdaI - L_prop.lambdaI)/PRIOR_MEAN_LAMBDA;
+    
     log_p_accept = log_pi_ratio*exponent;
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
     if((log_p_accept > 0.0) || log(drand(&rng_long)) < log_p_accept){ // accept proposal
@@ -1308,15 +1323,15 @@ update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, do
     return result;
 }
 
-inline int
-update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, double exponent)
+//inline
+int update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, double exponent)
 {
         // if ITselect is 0 updates lambdaI, else updates lambdaT
         // ITavg should be Iavg if updating lambdaI, else Tavg.
         // returns 1 if update accepted, 0 otherwise
     Lambdas L_prop = *L;
     double log_pi_ratio, log_p_accept;
-    int NpM = path->start->perm->n_mark + path->start->perm->n_chrom;
+    //int NpM = path->start->perm->n_mark + path->start->perm->n_chrom;
     double L_g = path->start->perm->L_g;
     int result;
 
@@ -1332,8 +1347,10 @@ update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, do
         + log(L_prop.Lambda/L->Lambda)*(double)(path->length_a - path->length)
         + log(L_prop.lambdaT/L->lambdaT)*(double)path->length_t
             //  + log(prod_a_to_n(path, &L_prop)) - log(prod_a_to_n(path, L)); // pi_prop/pi_old
-      + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old   
-   
+      + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
+    
+    log_pi_ratio += (L->lambdaT - L_prop.lambdaT)/PRIOR_MEAN_LAMBDA;
+    
     log_p_accept = log_pi_ratio*exponent; //
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
     if((log_p_accept > 0.0) || log(drand(&rng_long)) < log_p_accept){ // accept proposal
@@ -1350,11 +1367,12 @@ update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, do
 }
 
 
-inline int
-update_r(Path* path, Lambdas* L)
+//inline
+int update_r(Path* path, Lambdas* L, double r_step_width, double exponent)
 {
-        //  double pi_old, pi_prop, p_accept;
-    double log_pi_old, log_pi_prop, log_p_accept;
+    // double pi_old, pi_prop, p_accept;
+    // double log_pi_old, log_pi_prop,
+    double log_p_accept;
     double r = L->r;
     double log_prior_factor, log_prior_factor_p;
     Lambdas L_prop = *L;
@@ -1365,7 +1383,7 @@ update_r(Path* path, Lambdas* L)
         // MH step for r
 
     // fprintf(stderr, "L->r: %g\n", L->r);
-    L_prop.r = fabs(r + r_STEP_WIDTH*(drand(&rng_long) - 0.5));  // reflect about r = 0. For this proposal dist, q_ratio is 1.0
+    L_prop.r = fabs(r + r_step_width*(drand(&rng_long) - 0.5));  // reflect about r = 0. For this proposal dist, q_ratio is 1.0
     L_prop.xi = (L_prop.r <= 1.0)? L_prop.r: 2.0 - 1.0/L_prop.r;
     log_prior_factor = (r < 1.0)? 0.0: -2.0*log(r); // from prior for r
     log_prior_factor_p = (L_prop.r < 1.0)? 0.0: -2.0*log(L_prop.r); // from prior for r
@@ -1392,8 +1410,11 @@ update_r(Path* path, Lambdas* L)
     if(!is_normal_or_zero(log_p_accept)){
    /*      printf("L, L_prop: %g %g %g %g %g  %g %g %g %g %g\n", L->Lambda, L->lambdaI, L->lambdaT, L->r, L->xi, */
 /*                L_prop.Lambda, L_prop.lambdaI, L_prop.lambdaT, L_prop.r, L_prop.xi);    */
-        printf("in update_r. log_p_accept is not normal. log_p_accept= %g \n", log_p_accept); n_rxi_p_a_nnoz++;}
-    
+      //printf("in update_r. log_p_accept is not normal. log_p_accept= %g \n", log_p_accept); n_rxi_p_a_nnoz++;
+    }
+    // put in temperature-dependent factor!!! i.e. multiply by exponent.
+    //printf("in update_r, log_p_accept: %g  exponent: %g\n", log_p_accept, exponent);
+    log_p_accept *= exponent;
     if(log_p_accept > 0.0 || log(drand(&rng_long)) < log_p_accept){ // accept proposal     
         *L = L_prop;
         result = 1;
@@ -1403,15 +1424,16 @@ update_r(Path* path, Lambdas* L)
 }
 
 
-inline int
-update_xi(Path* path, Lambdas* L)
+//inline
+    int update_xi(Path* path, Lambdas* L, double exponent)
 {
-    double log_pi_old, log_pi_prop, log_p_accept;
-    double r = L->r, xi = L->xi;
+    double log_p_accept;
+    double xi = L->xi;
     Lambdas L_prop = *L;
     int result;
     double L_g = path->start->perm->L_g;
-       
+
+    
         // use xi
     assert(XI_WIDTH < 4.0);
     L_prop.xi = fabs(xi + XI_WIDTH*(drand(&rng_long) - 0.5));
@@ -1419,11 +1441,15 @@ update_xi(Path* path, Lambdas* L)
     L_prop.r = ( L_prop.xi <= 1.0)?  L_prop.xi: 1.0/(2.0 -  L_prop.xi);
 
     get_lambdaIT_from_Lambda_r(L_g, L->Lambda, L_prop.r, &(L_prop.lambdaI), &(L_prop.lambdaT));
+
+    double log_prior_ratio = ((L_prop.lambdaI + L_prop.lambdaT) - (L->lambdaI + L->lambdaT))/PRIOR_MEAN_LAMBDA;
     
     log_p_accept = log(L_prop.lambdaI/L->lambdaI)*(double)path->length_i + log(L_prop.lambdaT/L->lambdaT)*(double)path->length_t;
     log_p_accept += log_prod_a_to_n(path, &L_prop);
     log_p_accept -= log_prod_a_to_n(path, L);
-
+    log_p_accept -= log_prior_ratio;
+    
+    log_p_accept *= exponent;
     if(!is_normal_or_zero(log_p_accept)){ printf("in update_xi. log_p_accept is not normal. p_accept= %g \n", log_p_accept);  n_rxi_p_a_nnoz++;}   
       
     if(log_p_accept > 0.0 || log(drand(&rng_long)) < log_p_accept){ // accept proposal    
