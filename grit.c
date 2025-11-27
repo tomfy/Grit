@@ -16,54 +16,54 @@
 #include "rngs.h"
 #include "extdefs.h"
 
+#define INITSHORT 0
+#define INITLONG  1
+
 Permutation* simulate_rearrangement(Permutation* p1, long N_sim_revs, double sim_lambda_ratio);
 
 int
 main(int argc, char *argv[])
 // main()
 {
-  long t_mainstart = time(NULL); // seconds from the epoch
-  setvbuf(stdout, NULL, _IOLBF, BUFSIZ); // not sure what this does
-
-
-
-
-
-
-  //*******************************************************
-
+  long t_mainstart = (long)time(NULL); // seconds from the epoch
+  setvbuf(stdout, NULL, (int)_IOLBF, BUFSIZ); // not sure what this does
 
  // ***** process command line *****
-  /* if (argc < 2) { */
-  /*   fprintf(stderr, "Usage:  %s -in <dosages_file> [-out <output_filename> -nhgmr_max <max_nhgmr>] \n", argv[0]); */
-  /*   print_usage_info(stderr); */
-  /*   fprintf(stderr, "%d\n", (int)EXIT_FAILURE); */
-  /*   exit(EXIT_FAILURE); */
-  /* } */
-
   char* cl_genomes_filename = NULL;
   //FILE *g_stream = NULL; // for reading in genotypes
   char* cl_control_filename = NULL;
   //FILE *c_stream = NULL; // for reading in pedigrees (if specified)
-  char* output_prefix = "";
+  // char* output_prefix = "";
   long cl_rng_seed = 0; // if left at this value, use value in control file.
   // static int cl_signed_flag = -1; // 1: signed, 0: unsigned, other: use control file value
   // static int cl_unsigned_flag = 0; // if set, unsigned, if neither set, use value in control file
-  int cl_choose_signs = -1;
+  int cl_choose_signs = -1; // -1  ->  use value of Choose_signs  in the control file.
+  int cl_output_paths = FALSE; // 
+  int cl_init_path_length = -1; // -1 -> default: first chain is long, if > 1 chain, 1 is short, the rest long.
+  double cl_epsilon = -1.0; // (0,1) larger -> longer proposed paths, lower acceptance prob.
+  int cl_n_temperatures = -1.0; // the number of temperatures for mcmcmc 
+  double cl_t_hot = -1.0; // the hottest temperature for mcmcmc
   
   int c;
   while(1){
     int option_index = 0;
     static struct option long_options[] = {
-      {"control", required_argument, 0, 'c'}, // filename of control file 
-      {"data",   required_argument, 0,  'd'}, // filename of genomes data set   
-      {"output_prefix",  required_argument, 0,  'o'}, // output filename
-      {"prefix", required_argument, 0, 'o'}, 
-      {"seed", required_argument, 0, 'r'},
-      {"rng_seed", required_argument, 0, 'r'},
-      {"signed", no_argument, 0, 's'}, // --signed  set Choose_signs = 0  (i.e. signed)
-      {"unsigned", no_argument, 0, 'u'}, // --unsigned
-      {0,         0,                 0,  0 } // so will abort if unrecognized option
+      {"control", required_argument, NULL, 'c'}, // filename of control file 
+      {"data",   required_argument, NULL,  'd'}, // filename of genomes data set   
+      {"output_prefix",  required_argument, NULL,  'o'}, // output filename
+      {"prefix", required_argument, NULL, 'o'}, 
+      {"seed", required_argument, NULL, 'r'},
+      {"rng_seed", required_argument, NULL, 'r'},
+      {"signed", no_argument, NULL, 's'}, // --signed  set Choose_signs = 0  (i.e. signed)
+      {"unsigned", no_argument, NULL, 'u'}, // --unsigned
+      {"paths", no_argument, NULL, 'p'},
+      {"short", no_argument, NULL, 't'},
+      {"long", no_argument, NULL, 'l'},
+      {"epsilon", required_argument, NULL, 'e'},
+      {"n_temperatures", required_argument, NULL, 'n'},
+      // {"t_hot", required_argument, NULL, 'h'},
+      {"hot_temperature", required_argument, NULL, 'h'},
+      {NULL,         0,        NULL,  0 } // so will abort if unrecognized option
     };
      
     // c = getopt_long_only(argc, argv, "", long_options, &option_index);
@@ -79,17 +79,35 @@ main(int argc, char *argv[])
       break;
     case 'o':
       output_prefix = optarg;
-    /* case 'r': */
-    /*   cl_rng_seed = atoi(optarg); */
-    /*   break; */
+      break;
     case 'r':
       cl_rng_seed = atoi(optarg);
+      fprintf(stderr, "case r, cl_rng_seed: %ld\n", cl_rng_seed);
       break;
     case 's':
-      cl_choose_signs = 0; // 
+      cl_choose_signs = 0; // do signed analysis, i.e. leave signs as they are in data file.
       break;
     case 'u':
-      cl_choose_signs = 3;
+      cl_choose_signs = 3; // do unsigned analysis, i.e. sample different possible choices of signs.
+      break;
+    case 'p':
+      cl_output_paths = TRUE;
+      break;
+    case 't':
+      cl_init_path_length = INITSHORT; // initialize all chains with short paths
+      break;
+    case 'l':
+      cl_init_path_length = INITLONG; // initialize all chains with long paths
+      break;
+    case 'e':
+      cl_epsilon = atof(optarg);
+      break;
+    case 'n':
+      cl_n_temperatures = atoi(optarg);
+      break;
+    case 'h':
+      cl_t_hot = atof(optarg);
+      printf("cl t hot: %g\n", cl_t_hot);
       break;
     case '?':
       fprintf(stderr, "? case in command line processing switch. Exiting\n");
@@ -105,6 +123,8 @@ main(int argc, char *argv[])
   printf("output filename prefix: %s\n", output_prefix);
   printf("cl rng seed %ld\n", cl_rng_seed);
   printf("cl choose signs: %i\n", cl_choose_signs);
+  printf("cl epsilon: %g\n", cl_epsilon);
+  printf("cl t_hot: %g\n", cl_t_hot);
   //   printf("cl unsigned flag: %i\n", cl_unsigned_flag);
   //getchar();
 
@@ -118,16 +138,31 @@ main(int argc, char *argv[])
   if (fp_control != NULL){
     printf("before input_run_parms\n");
     input_run_params(fp_control, &r_in);
+    fprintf(stderr, "seed: %ld  %ld\n", r_in.Rand_seed, cl_rng_seed);
+
     //  ********   override control file values with command line values  *******
     if(cl_genomes_filename != NULL) r_in.Genome_data_file = cl_genomes_filename;
     if(cl_rng_seed != 0) r_in.Rand_seed = cl_rng_seed;
-    if(cl_choose_signs >= 0){ r_in.Choose_signs = cl_choose_signs; printf("r_in.Choose_signs: %d\n", (int)r_in.Choose_signs); }
+    fprintf(stderr, "seed: %ld\n", r_in.Rand_seed);
     if(r_in.Rand_seed < 0){
       r_in.Rand_seed = time(NULL);  // time returns secs since epoch
       printf("Control file has negative value for Rand_seed.\n");
       printf("Using rng seed from clock:  %ld\n", r_in.Rand_seed);
     }
+    fprintf(stderr, "seed: %ld\n", r_in.Rand_seed); //getchar();
+    if(cl_choose_signs >= 0){ r_in.Choose_signs = cl_choose_signs; printf("r_in.Choose_signs: %d\n", (int)r_in.Choose_signs); }
+
+    r_in.Output_paths = cl_output_paths;
     if(r_in.MC3_max_pathlength > MAXPATHLENGTH){ r_in.MC3_max_pathlength = MAXPATHLENGTH; }
+    if(cl_init_path_length == INITSHORT){
+      r_in.N_short_chains = r_in.N_chain; // all short
+    }else if(cl_init_path_length == INITLONG){
+      r_in.N_short_chains = 0; // all long
+    }
+    fprintf(stderr, "N_short_chains: %d\n", r_in.N_short_chains); //getchar();
+    if(cl_epsilon > 0){ r_in.Epsilon = cl_epsilon; printf("epsilon: %g %g\n", cl_epsilon, r_in.Epsilon); };
+    if(cl_n_temperatures > 0){ r_in.N_temperatures = cl_n_temperatures; }
+    if(cl_t_hot > 0){ r_in.T_hot = cl_t_hot; }
     check_run_params(&r_in);
     printf("seed: %ld\n", r_in.Rand_seed); //getchar();
     seedrand(r_in.Rand_seed); 
@@ -137,8 +172,8 @@ main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
   fclose(fp_control);
-
-  output_run_params(stdout, &r_in); // getchar();
+  
+  output_run_params(stdout, &r_in); //getchar();
    
   printf("Genomes data file: %s\n", r_in.Genome_data_file);
     
@@ -153,8 +188,8 @@ main(int argc, char *argv[])
   printf("distsinfile: %i \n", distsinfile);
   // r_in.Use_distances = (r_in.Use_distances && distsinfile);
   if(!r_in.Use_distances){ // set L_g fields of permutation to N+M, even if distances in file
-    genomes[0]->L_g = genomes[0]->n_mark + genomes[0]->n_chrom;
-    genomes[1]->L_g = genomes[1]->n_mark + genomes[1]->n_chrom;
+    genomes[0]->L_g = (double)(genomes[0]->n_mark + genomes[0]->n_chrom);
+    genomes[1]->L_g = (double)(genomes[1]->n_mark + genomes[1]->n_chrom);
   }
 
   Permutation* p1 = genomes[0];
@@ -179,18 +214,26 @@ main(int argc, char *argv[])
     r_in.Lambda_max = (double)(NpM*(NpM-1)/2)*r_in.lambda_max;
   }
   else{
-    r_in.Lambda_max = get_Lambda(NpM, r_in.lambda_max, r_in.lambda_max);
+    r_in.Lambda_max = get_Lambda((double)NpM, r_in.lambda_max, r_in.lambda_max);
   }
+
+  output_run_params(stdout, &r_in); //getchar();
  
   // open output files
-  char rawfilename[200];
-  for(long i=0; i<r_in.N_temperatures; i++){
-    // open files Raw1.out, Raw2.out etc. for Raw output from different T chains
-    sprintf(rawfilename, "%sT%iraw.out", output_prefix, (int)i);
+  char rawfilename[200]; 
+  for(int i=0; i<r_in.N_temperatures; i++){ // open files Raw1.out, Raw2.out etc. for Raw output from different T chains
+    sprintf(rawfilename, "%sT%i.out", output_prefix, (int)i);
     fp_raw[i] = fopen(rawfilename, "w");
     output_run_params(fp_raw[i], &r_in);
   }
-  fflush(0);
+   char progfilename[200];
+  {
+    // open files
+    sprintf(progfilename, "%sprogress.out", output_prefix);
+    fp_prog = fopen(progfilename, "w");
+    output_run_params(fp_prog, &r_in);
+  }
+  fflush(NULL);
         
   printf("****************************\n");
   print_perm(stdout, p1);
@@ -208,7 +251,7 @@ main(int argc, char *argv[])
   long t_conv;
   long n_conv = run_chains(the_chain_set, &r_in, &t_conv);
 
-  long t_mainstop = time(NULL);
+  long t_mainstop = (long)time(NULL);
   fprintf(stdout, "CPU time to convergence: %ld seconds\n", (long)t_conv);
   printf("MC updates to convergence:  %ld \n", n_conv);
   printf("number of path updates with log_p_a not(normal or zero): %i \n", n_path_p_a_nnoz);
@@ -306,9 +349,9 @@ rmean(int* Nconv, int n, double* sigma, double f)
   // recalculate mean, variance
   double sum = 0.0, sumsq = 0.0;
   double mean, result, v, rv;
-  int i, nr=0;
+  int nr=0;
   printf("top of rmean\n");
-  for(i=0; i<n; i++){
+  for(int i=0; i<n; i++){
     sum += (double) Nconv[i];
     sumsq += (double)Nconv[i]*(double)Nconv[i];
   }
@@ -317,7 +360,7 @@ rmean(int* Nconv, int n, double* sigma, double f)
   v = (sumsq - mean*sum)/(double)(n-1);
   printf("middle of rmean, mean, v: %g %g \n",  mean, v);
   sum = 0.0; sumsq = 0.0; 
-  for(i=0; i<n; i++){
+  for(int i=0; i<n; i++){
     if(fabs((double)Nconv[i] - mean) < f*sqrt(v))
       {
 	nr++;
@@ -345,8 +388,8 @@ void print_other_output(void){
   }fprintf(fpx, "\n");
         
   fprintf(fpx, "# nstucks: \n");
-  for(int i=0; i<50; i++){
-    fprintf(fpx, "%i  %i \n", i, nstucks[i]);
+  for(int ijk=0; ijk<50; ijk++){
+    fprintf(fpx, "%i  %i \n", ijk, nstucks[ijk]);
   }fprintf(fpx, "\n");
         
   fprintf(fpx, "# prop_lengths: \n");        
