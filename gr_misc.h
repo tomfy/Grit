@@ -29,14 +29,9 @@ void check_for_null_pointer(void* p);
 void* chmalloc(size_t size);
 void* chcalloc(size_t n, size_t element_size);
 
-inline void double_swap(double* x, double* y){double temp = *x; *x = *y; *y = temp;}
-inline void int_swap(int* x, int* y){int temp = *x; *x = *y; *y = temp;}
-inline double beta(double theta, int R, int N){return pow(theta, R)*pow(1.0 - theta, (N-R)); }
-
-/* void double_swap(double* x, double* y); //{double temp = *x; *x = *y; *y = temp;} */
-/* void int_swap(int* x, int* y); //{int temp = *x; *x = *y; *y = temp;} */
-/* double beta(double theta, int R, int N); //{return pow(theta, R)*pow(1.0 - theta, (N-R)); } */
-
+void double_swap(double* x, double* y); // {double temp = *x; *x = *y; *y = temp;}
+void int_swap(int* x, int* y); // {int temp = *x; *x = *y; *y = temp;}
+double beta(double theta, int R, int N); //{return pow(theta, R)*pow(1.0 - theta, (N-R)); }
 
 void process_error(void);
 

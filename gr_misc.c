@@ -384,5 +384,13 @@ double theta_to_haldane(double theta, double inv_theta_knee)
     return -0.5*log(1.0 - 2.0*(theta/(1.0 + theta*inv_theta_knee)));
 }
 
+
+//inline
+void double_swap(double* x, double* y){double temp = *x; *x = *y; *y = temp;}
+//inline
+void int_swap(int* x, int* y){int temp = *x; *x = *y; *y = temp;}
+//inline
+double beta(double theta, int R, int N){return pow(theta, R)*pow(1.0 - theta, (N-R)); }
+
 // end of gr_misc.c
 
