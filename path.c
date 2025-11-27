@@ -65,16 +65,17 @@ shorten_path(Path* path)
         // shortens the path by eliminating loops
 
     Step* s0, * s1, * s2, * s3;
-    Step* a1, * a2;
-    Permutation* p1, * p2;
+    // Step* a1, * a2;
     Cycle_decomposition the_cd;
     Path* new_path;
     Step* new_step;
     double logprodAold, logprodAnew;
     
-    a1 = path->start; a2 = path->end;
-    p1 = copy_perm(a1->perm); p2 = copy_perm(a2->perm);
-    
+   
+    #ifndef NDEBUG
+     Step* a1 = path->start; Step* a2 = path->end;
+    Permutation* p1 = copy_perm(a1->perm); Permutation* p2 = copy_perm(a2->perm);
+    #endif
     
     
     
@@ -143,7 +144,8 @@ shorten_path(Path* path)
 Path* gen_path(Permutation* p1, Permutation* p2, double Epsilon, double lambda_ratio, double limit_l, double* log_prob)
 //               , double prob_dist) // generate a path from p1 to p2 
 {
-    Permutation* the_p, * old_p;
+  Permutation* the_p;
+ 
     Step* the_step; 
     Cycle_decomposition the_cd; 
     Path* the_path;
@@ -153,7 +155,7 @@ Path* gen_path(Permutation* p1, Permutation* p2, double Epsilon, double lambda_r
     int ninv = 0, ntrans = 0;
     double pathprob = 1.0;
     int dp1p2; // est dist from p1 to p2
-    double step_prob_check;
+    //double step_prob_check;
     
     *log_prob = 0.0; // initialize the path prob to 1
 //    prob_dist = 1.0; // prob density for these distances = product(1/(l1*l2)), i.e. there is a factor for each step on path of
@@ -171,8 +173,10 @@ Path* gen_path(Permutation* p1, Permutation* p2, double Epsilon, double lambda_r
     the_path = path_alloc(the_step);
     the_path->n_stuck = 0;
     the_path->dd01_inv = FALSE; the_path->dd01_trans = FALSE;
-
-    old_p = the_p;
+    
+    // #ifndef NDEBUG
+    Permutation* old_p = the_p;
+    // #endif
     the_p = copy_perm(the_p);
         //  printf("in gen_path, before loop\n");
     while ((the_step->rev = take_step_multi(the_p, &the_cd, Eps, &(the_step->prob), lambda_ratio)).is_inversion != UNKNOWN){
@@ -347,7 +351,8 @@ add_dummies(Path* path, const Lambdas* L)
 } // end of function add_dummies
 
 
-inline double
+//inline
+double
 lambdum_over_Lambda(const Permutation* p, const Lambdas* L)
 {
     return 1.0 - Lambda_real_over_Lambda(p, L);
@@ -373,7 +378,8 @@ log_prod_a_to_n(const Path* path, const Lambdas* L)
     return result;
 } // end of function log_prod_a_to_n
 
-inline double
+//inline
+double
 Lambda_real_over_Lambda(const Permutation* p, const Lambdas* L)
 {
   //fprintf(stderr, "ZZZZZZZZZZ: %g %g %g %g %g\n",
@@ -483,7 +489,6 @@ get_LLiLt(Path* path)
         // just looks at revs
       
     Step* the_step = path->start, * the_next_step;
-    int result;
     int done = FALSE;
 
     path->L = 0;
@@ -1141,10 +1146,10 @@ int update_path(State* state, const Run_info_in* r_in, double exponent, int upda
         // returns 1 if proposal accepted, 0 if rejected. 
 
     Path* the_path = state->path;
-    Step* step_before_subpath_start; 
+    //Step* step_before_subpath_start; 
     int old_subpath_length; 
     int proposed_length, proposed_length_i, proposed_length_t, proposed_length_f, proposed_length_a;
-    int proposed_L, proposed_L_i, proposed_L_t;
+    // int proposed_L, proposed_L_i, proposed_L_t;
     double old_subpath_length_prob;   
     double q_signs_ratio, l_prob_ratio;
     
@@ -1155,17 +1160,17 @@ int update_path(State* state, const Run_info_in* r_in, double exponent, int upda
     int N = the_path->start->perm->n_mark;
     double Epsilon;
     double log_pirat;
-    double log_new_subpath_prob, log_new_subpath_prob_check, log_old_subpath_prob;
+    double log_new_subpath_prob, log_old_subpath_prob;
     double log_q_ratio, log_p_accept;
     int accept;
-    double log_q_dist_old, log_q_dist_prop;
+    //double log_q_dist_old, log_q_dist_prop;
     int max_path_length = r_in->MC3_max_pathlength;
-    static int first = TRUE;
-    Path* new_down_path;
-    Path old_down_path;
-    Path* regen_path; 
-    int llll, cmprpaths;
-    unsigned long seed;
+    //static int first = TRUE;
+    //Path* new_down_path;
+    //Path old_down_path;
+    // Path* regen_path; 
+    // int llll, cmprpaths;
+    // unsigned long seed;
     int do_sign_flipping = ((r_in->Choose_signs > 0) && (drand(&rng_long) < FLIPSIGNSTEPPROB));
 
     update_to_end = update_to_end || r_in->Use_distances;
@@ -1262,7 +1267,7 @@ int update_path(State* state, const Run_info_in* r_in, double exponent, int upda
            if(state->Mode >= 2) {
             if(PRODATON) log_q_ratio += log_prod_a_to_n(&old_subpath, state->L) - log_prod_a_to_n(new_subpath, state->L) ;
                  log_q_ratio += log(prod_1minusa(&old_subpath, state->L) / prod_1minusa(new_subpath, state->L));
-                  seed = rng_long;
+		 // seed = rng_long;
                 // *********** put in factor for the lengths **********
               if(/* r_in->Use_distances ||  */update_to_end){ 
                 double log_q_dist_ratio, log_prod_A_old, log_prod_A_new;
@@ -1618,7 +1623,7 @@ double
 get_step_prob_multi(Permutation* p, Permutation* next_p, Permutation* targ_p, Reversal* rev, double Epsilon, double lambda_ratio)
 {
     Cycle_decomposition the_cd, next_cd;
-    int delta_c_int, delta_m, delta_c_g;
+    int delta_c_int, delta_c_g; // delta_m,
     double step_prob;
     int delta_d, is_same_eds = UNKNOWN;
 
@@ -1631,7 +1636,7 @@ get_step_prob_multi(Permutation* p, Permutation* next_p, Permutation* targ_p, Re
     get_CD(next_p, targ_p, &next_cd);
              
     delta_c_int = next_cd.n_int_cycles - the_cd.n_int_cycles;
-    delta_m = next_p->n_chrom_nonempty - p->n_chrom_nonempty;
+    // delta_m = next_p->n_chrom_nonempty - p->n_chrom_nonempty;
     delta_c_g = next_cd.c_g - the_cd.c_g;
     delta_d = delta_c_g - delta_c_int;
         //  printf("in get_step_prob_multi. delta c_g, c_i: %i %i \n", delta_c_g, delta_c_int);
@@ -1740,8 +1745,7 @@ track_lengths(const Path* path, double* the_ptl, double* the_atl)
         // also accumulate in the_atl (actual track lengths) the track lengths of the inversions actually done
         // exclude translocations and inversion which invert all markers on a chromosome
     
-      Step* the_step = path->start, * the_next_step;
-    int result;
+    Step* the_step = path->start, * the_next_step;
     int done = FALSE;
     int n_chrom = path->start->perm->n_chrom;
     int j;
@@ -1841,7 +1845,7 @@ continue_path_with_new_distances(Path* newpath, Step* oldsubpathend, double* log
     Step* olddownstep = oldsubpathend;
     Step * the_step = newpath->end;
     Reversal rev;
-    int first = TRUE;
+    //int first = TRUE;
      
     *logprodAold = *logprodAnew = 0.0;
 
@@ -2038,14 +2042,14 @@ int revs_commute(Reversal* rev1, Reversal* rev2)
 int
 check_path_next_prev(Path* path)
 {
-    int s, spn, snp;
+  //int s; //, spn, snp;
     Step* step = path->start;
     int result = TRUE;
     int count = 0;
     while(step->next != NULL){
-        s = (int)step;
-        snp = step->next == NULL? (int)NULL: (int)step->next->prev;
-        spn = step->prev == NULL? (int)NULL: (int)step->prev->next;
+      //s = (int)step;
+        //snp = step->next == NULL? (int)NULL: (int)step->next->prev;
+        //spn = step->prev == NULL? (int)NULL: (int)step->prev->next;
             //  printf("%i %i %i   %i\n", spn, step, snp,  (s = snp && s == spn)); 
         if(step->next->prev != step){
                    printf("%i  %i %i %i   %i\n", count, step->prev->next, step, step->next->prev,  (step == step->prev->next && step == step->next->prev)); 

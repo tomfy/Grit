@@ -7,15 +7,17 @@ Path* gen_path(Permutation* p1, Permutation* p2, double Epsilon, double lambda_r
 //Path* gen_new_dist_path(const Step* olddownstart, const Step* newsubpathend);
 
 void add_dummies(Path* path, const Lambdas* L); // add dummy events for uniformization
-inline double lambdum_over_Lambda(const Permutation* p, const Lambdas* L);
-inline double Lambda_real_over_Lambda(const Permutation* p, const Lambdas* L);
+//inline
+double lambdum_over_Lambda(const Permutation* p, const Lambdas* L);
+//inline
+double Lambda_real_over_Lambda(const Permutation* p, const Lambdas* L);
 
 // Updating path
 void get_section(Path* the_path, int update_length, /*  Step** before_step,  */Path* subpath);
 double get_length_prob(const Run_info_in* r_in, int N, int L, int length);
 void get_rand_length(const Run_info_in* r_in, int N, int L, int* length, double* prob);
 
-double prod_a_to_n(const Path* path, const Lambdas* L);
+// double prod_a_to_n(const Path* path, const Lambdas* L);
 double log_prod_a_to_n(const Path* path, const Lambdas* L);
 double log_prod_A(const Path* path);
 double prod_1minusa(const Path* path, const Lambdas* L);
