@@ -192,7 +192,8 @@ typedef struct run_info_in{
     int Use_distances; // Whether to make use of distance information (if present in the file)
     int N_rev_fake; // if > 0 is number of inversions/translocations to do to produce fake data; else use data from file as is
     double lambda_ratio_fake; // generate fake data with this value as ratio of inversion rate to translocation rate (lambdaI/lambdaT)
-  int N_chain; // number of chains to run in parallel for data
+    int N_chain; // number of chains to run in parallel for data
+  int N_short_chains; // number of chains to be initialized to short paths 
     int N_data; // number of simulated data to do
     
     int Update_lambdas_mode; // 0: no uniformization, fixed lambda 1: no uniformization, simulated Lambda
@@ -231,7 +232,14 @@ typedef struct run_info_in{
     double Alpha; // location of peak (or falling edge of tanh) is at N*Alpha
     double Xi; // width of peak (or of transition region from hi to low) is alpha*N/Xi  
     int Choose_signs;  // 0 -> unsigned, 1,2,3,4, ... various algorithms for fiddling with signs for unsigned case.
-    double Flip_one_sign_epsilon; // In range 0 to 1. If small, sign changes conducive to short paths are strongly preferred    
+    double Flip_one_sign_epsilon; // In range 0 to 1. If small, sign changes conducive to short paths are strongly preferred
+  // so Epsilon, Flip_one_sign_epsilon, LambdaI_width_coeff, LambdaT_width_coeff, r_step_width,  Alpha, Xi are relevant to
+  // 'size' of proposed step, and hence to acceptance prob.
+  int Output_paths; // TRUE -> output file with paths
+  double LambdaI_width_coeff; // determines size of proposed change in lambdaI
+  double LambdaT_width_coeff; // determines size of proposed change in lambdaT
+  double r_step_width; // determines size of proposed change in r (=lambdaI/lambdaT)
+
 }Run_info_in;
 
 typedef struct path_tree_node{
