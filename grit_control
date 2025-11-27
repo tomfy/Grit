@@ -2,10 +2,10 @@ Genome_data_file   N16_C1
 Use_distances	   0
 N_rev_fake         0
 lambda_ratio_fake  50.0
-N_chain            4
+N_chain            2
 N_data             1
 
-Update_lambdas_mode  4
+Update_lambdas_mode  3
 Lambda             2.5
 lambda_max         0.25
 
@@ -28,7 +28,7 @@ Conv_lambdaIdist   100.2
 Conv_lambdaTdist   100.2
              
 Burn_in      	   1000
-Stop_at             200
+Stop_at             50
 Min_burn_in_length 1000
 Max_runlength      5000000
 Rand_seed          1053364529
