@@ -7,3 +7,5 @@ Histogram* make_scaled_histogram(double xmin, double xrange, double minbw, doubl
 int get_histogram_parameters(double xmin, double nbins, int Integers, double* xmin_out, double* bw);
 
 double BoW(double B, double W);
+long progress_output(const Run_info_in* r_in, int* n_mc3_swap, Chain_set* the_chain_set,
+		     long steps_so_far, long n_mc3_swap_try, long tstart);
