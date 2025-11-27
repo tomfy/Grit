@@ -26,7 +26,7 @@ int reverse(Permutation* perm, Reversal* rev)
         //  int flip_rh_chrom; // gets set to TRUE in get_abcd if righthand chromosome should be flipped
     double d_ac, d_bd;
     Permutation* perm_in = copy_perm(perm);
-    double d_abreak, d_bbreak, d_cbreak, d_dbreak;
+    // double d_abreak, d_bbreak, d_cbreak, d_dbreak;
 
     if(!check_rev_ordered(perm, *rev)){
         print_perm(stdout, perm);
@@ -159,10 +159,10 @@ int reverse(Permutation* perm, Reversal* rev)
         //   printf("a,b,c,d, d_black: %g %g %g %g \n", a->d_black,  b->d_black,  c->d_black,  d->d_black);
     assert(a->d_black == b->d_black);  assert(c->d_black == d->d_black);
     
-    d_abreak = a->d_black*rev->dbreakod[0];
-    d_bbreak = b->d_black*rev->dbreakod[1];
-    d_cbreak = c->d_black*rev->dbreakod[2];
-    d_dbreak = d->d_black*rev->dbreakod[3];
+    /* d_abreak = a->d_black*rev->dbreakod[0]; */
+    /* d_bbreak = b->d_black*rev->dbreakod[1]; */
+    /* d_cbreak = c->d_black*rev->dbreakod[2]; */
+    /* d_dbreak = d->d_black*rev->dbreakod[3]; */
         //   printf("d_abreak, etc: %g %g %g %g \n", d_abreak, d_bbreak,  d_cbreak, d_dbreak); 
     
     d_ac = a->d_black*rev->dbreakod[0] + c->d_black*rev->dbreakod[2];
@@ -446,7 +446,7 @@ fix_rev1(Permutation* perm, Reversal* rev)
 
 
 int
-get_4ends(const Permutation* perm, int numbs[4], Marker_end* ends[4], Marker_end* ordered_ends[4], int order[4])
+get_4ends(const Permutation* perm, int* numbs, Marker_end** ends, Marker_end** ordered_ends, int* order)
 {   
     int i;
         //   marker_end_ptr  a,b,c,d; // a,b,c,d: the four ends which will be reconnected, a is leftmost in perm, b is a's neighbor (i.e. connected by black edge)
@@ -546,8 +546,7 @@ fix_me_pair(const Permutation* perm, Marker_end** e, Marker_end* prev_e_empty)
     return e_empty;
 } // end of fix_me_pair
 
-int
-order_4ends(Marker_end* ends[4], Marker_end* ordered_ends[4], int order[4])
+int order_4ends(Marker_end** ends, Marker_end** ordered_ends, int* order)
 {
         // returns number of swaps (0, 1, or 2)
     Marker_end* temp;
@@ -645,7 +644,8 @@ Reversal rand_reverse_r(Permutation* perm, double r, double* prob, Cycle_element
     return the_rev;
 }  // end of function rand_reverse_r
 
-inline marker_end_ptr get_cycle_start(marker_end_ptr the_end, int* cycle_found)
+//inline
+marker_end_ptr get_cycle_start(marker_end_ptr the_end, int* cycle_found)
 {
         // move L to R through marker ends until find one which is not yet on a cycle, return ptr to that one.
         // assumes the_end is at the left end of a black edge 
@@ -734,7 +734,7 @@ Reversal make_signflip_rev(Permutation* perm, int cut1, int cut2)
 }  // end of function make_signflip_rev
 
 void
-get_signflip_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double dbreakod[4], double* ld, double* rd)
+get_signflip_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double* dbreakod, double* ld, double* rd)
 {
     double min_sep = (a->d_black < c->d_black)? a->d_black: c->d_black;
   
@@ -747,7 +747,7 @@ get_signflip_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end
 }
 
 void
-get_rand_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double dbreakod[4], double* ld, double* rd)
+get_rand_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double* dbreakod, double* ld, double* rd)
 {
     double rand;
     
@@ -2325,7 +2325,7 @@ get_genome_from_file(FILE* fp, Permutation** genome, int Use_distances)
     char tempstr[128], temp2[128];
     double chromosome_length[MAX_N_CHROMOSOMES];
     double cumulative_length_of_chromosomes = 0.0;
-    double L_g, marker_spacing;
+    double L_g; //, marker_spacing;
     int n_edge;
   
     fscanf(fp, "%*s %i %*s %i", &Total_N_markers, &N_genomes);
@@ -2425,7 +2425,7 @@ get_genome_from_file(FILE* fp, Permutation** genome, int Use_distances)
     
     L_g = cumulative_length_of_chromosomes;
     n_edge = N_chromosomes + n_marker;
-    marker_spacing = (L_g/(double)n_edge);
+    //marker_spacing = (L_g/(double)n_edge);
     cumulative_length_of_chromosomes = 0.0; 
        
     for(k=0; k<n_marker; k++){ // get perm_array
@@ -2445,7 +2445,7 @@ get_genome_from_file(FILE* fp, Permutation** genome, int Use_distances)
 
 
 void
-print_perm_array(int Nchrom, int* Nmarkers, Marker perm_array[][MAX_N_MARKERS_PER_CHROMOSOME])
+print_perm_array(int Nchrom, int* Nmarkers, Marker** perm_array) // [][MAX_N_MARKERS_PER_CHROMOSOME])
 {
     Marker* m;
     int i, j;

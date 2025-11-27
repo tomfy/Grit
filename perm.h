@@ -13,9 +13,6 @@ Permutation* copy_perm(const Permutation* src); // return pointer to copy of per
 
 // Dealing with reversals
 int reverse(Permutation* perm, Reversal* rev);  // do specified reversal
-//int reverse_new(Permutation* perm, Reversal* rev, Marker_end* ends[4], Marker_end* oends[4]);
-/* int reverse_old(Permutation* perm, Reversal rev); */
-/* int reverse_new(Permutation* perm, Reversal* rev); */
 Reversal make_signflip_rev(Permutation* perm, int cut1, int cut2); // given cut positions[0, N], return a reversal.
 //Reversal choose_make_rev(int n_edges, Cycle_element* edge1, Cycle_element* edge2, int flip_chromosome);
 Reversal make_rev(int n_edges, Cycle_element* edge1, Cycle_element* edge2, int flip_chromosome, const Permutation* perm);
@@ -29,7 +26,8 @@ Reversal rand_reverse_r(Permutation* perm, double r, double* prob, Cycle_element
 //int reverse_chromosome_old(Permutation* perm, Reversal* rev, int the_chromosome);
 int reverse_chromosome(Permutation* perm, int the_chromosome, double* rd);
 // Dealing with cycle decompositions
-inline marker_end_ptr get_cycle_start(marker_end_ptr the_end, int* cycle_numbers);
+//inline
+marker_end_ptr get_cycle_start(marker_end_ptr the_end, int* cycle_numbers);
 int run_around_cycle(const Permutation* perm1, const Permutation* perm2, Cycle_decomposition* the_cd,
             marker_end_ptr cycle_start);
 int get_CD(const Permutation* perm1, const Permutation* perm2, Cycle_decomposition* the_cd);
@@ -70,7 +68,7 @@ Reversal get_spec_00deds2_rev(Cycle_decomposition* the_cd, int n_spec, int type)
 int
 marker_cmp(const void* m1, const void* m2);
 void
-print_perm_array(int Nchrom, int* Nmarkers, Marker perm_array[][MAX_N_MARKERS_PER_CHROMOSOME]);
+print_perm_array(int Nchrom, int* Nmarkers, Marker** perm_array);
 int
 same_markers(int N, Marker* g1, Marker* g2);
 
@@ -95,12 +93,11 @@ int chroms_in_common(Cycle_element* edge1, Cycle_element* edge2, const Permutati
 //int get_abcd_new(const Permutation* perm, const Reversal* rev, Marker_end** ap, Marker_end** bp, Marker_end** cp, Marker_end** dp);
 //Marker_end* get_me_pair(const Permutation* perm, int* pos, Marker_end** e, Marker_end* prev_e_empty);
 
-int get_4ends(const Permutation* perm, int numbs[4], Marker_end* ends[4], Marker_end* ordered_ends[4], int order[4]);
+int get_4ends(const Permutation* perm, int* numbs, Marker_end** ends, Marker_end** ordered_ends, int* order);
 Marker_end* fix_me_pair(const Permutation* perm, Marker_end** e, Marker_end* prev_e_empty);
-int order_4ends(Marker_end* ends[4], Marker_end* ordered_ends[4], int order[4]);
-//void get_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double dbreakod[4]);
-void get_signflip_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double dbreakod[4], double* ld, double* rd);
-void get_rand_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double dbreakod[4], double* ld, double* rd);
+int order_4ends(Marker_end** ends, Marker_end** ordered_ends, int* order);
+void get_signflip_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double* dbreakod, double* ld, double* rd);
+void get_rand_break_dists(Marker_end* a, Marker_end* b, Marker_end* c, Marker_end* d, double* dbreakod, double* ld, double* rd);
 
 int check_rev(int n_markers, Reversal* rev);
 
