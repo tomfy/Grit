@@ -163,7 +163,7 @@ check_path_lengths(const Path* path)
                    &&(length_t == path->length_t)&&(length_f == path->length_f)&&(length_a == path->length_a))))
         printf("in check_path_lengths: \n      length,     length_i, etc: %8i %8i %8i %8i %8i\n  path->length, path->length_i, etc: %8i %8i %8i %8i %8i\n",
                length, length_i, length_t, length_f, length_a, path->length, path->length_i, path->length_t, path->length_f, path->length_a);
-    if(!real_close(fission_factor, path->fission_factor, 500.0*DBL_EPSILON)) {
+    if(!real_close(fission_factor, path->fission_factor, 500.0 * DBL_EPSILON)) {
         printf("in check_path_lengths: %g %g \n", fission_factor, path->fission_factor); getchar();
     }
     return result;

@@ -27,7 +27,8 @@ int check_markend_other_ptrs(const Permutation* perm);
 int check_perm_selfconsistent(const Permutation* perm);
 int check_markend_dists(const Permutation* perm);
 int check_markend_dists2(const Permutation* perm);
-
+int check_Ai_At(Permutation* perm);
+void check_edss(Cycle_decomposition* the_cd);
 
 // allocation, initialization
 void permfree(Permutation** perm);

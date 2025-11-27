@@ -48,12 +48,12 @@ set_Ai_At(Permutation* perm)
 {
     double sum_l_sqr = 0.0;
     double sum_chrom_l = 0.0, sum_chrom_l_sqr = 0.0;
-    double sum_li_lj_inv = 0.0, sum_li_lj_trans = 0.0;
+    //double sum_li_lj_inv = 0.0, sum_li_lj_trans = 0.0;
     double sum_ls = 0.0;
     double L_g = 0.0;
     int i; //, NpM = perm->n_mark + perm->n_chrom;
     Marker_end* e1, * e2;
-    double l, area;
+    double l; //, area;
     int chrom;
     double* chrom_lengths = (double*)chcalloc(perm->n_chrom, sizeof(double));
     int stop = FALSE;
@@ -105,12 +105,10 @@ check_Ai_At(Permutation* perm)
 {
     double sum_l_sqr = 0.0;
     double sum_chrom_l = 0.0, sum_chrom_l_sqr = 0.0;
-    double sum_li_lj_inv = 0.0, sum_li_lj_trans = 0.0;
     double sum_ls = 0.0;
     double L_g = 0.0;
-    int i; //, NpM = perm->n_mark + perm->n_chrom;
     Marker_end* e1, * e2;
-    double l, area;
+    double l; 
     int chrom;
     double* chrom_lengths = (double*)chcalloc(perm->n_chrom, sizeof(double));
     int stop = FALSE;
@@ -134,7 +132,7 @@ check_Ai_At(Permutation* perm)
         chrom_lengths[chrom] += l;
         sum_ls += l;
     }
-    for(i=0; i<perm->n_chrom; i++){
+    for(int i=0; i<perm->n_chrom; i++){
         sum_chrom_l_sqr += chrom_lengths[i]*chrom_lengths[i];
         sum_chrom_l += chrom_lengths[i];
         if(perm->chromosome_lengths[i] != chrom_lengths[i]){
@@ -449,10 +447,9 @@ int check_markend_black_ptrs(const Permutation* perm)
 int check_markend_dists(const Permutation* perm)
 {
     Marker_end* end, * bend;
-    int i, pos, black_pos;
     int retval = TRUE;
-        //  int logdiff, logdiffhist[10] = {0};
-
+       
+    int i;
     for (i=0, end = perm->p; i<=2*(perm->n_mark + perm->n_chrom)-1; i++, end++){
         bend = end->black;
         if(!real_close2(end->d_black, bend->d_black, 5.0e-12, 1.0)){
@@ -478,7 +475,7 @@ int check_markend_dists(const Permutation* perm)
 int check_markend_dists2(const Permutation* perm)
 {
     Marker_end* end, * bend;
-    int i, pos, black_pos;
+    //int i, pos, black_pos;
     int retval = TRUE;
     double dist = 0.0;
 
@@ -1020,7 +1017,7 @@ void check_edss(Cycle_decomposition* the_cd)
 {
     int i;
     int n_eds = the_cd->n_edss;
-    int n_inc, n_nc;
+    //int n_inc, n_nc;
     Cycle* the_eds;
     Cycle_element* ce;
     int fb, lb, nb, ng;
@@ -1060,7 +1057,7 @@ void print_edss(Cycle_decomposition* the_cd)
 {
     int i;
     int n_eds = the_cd->n_edss;
-    int n_inc, n_nc;
+    //int n_inc, n_nc;
     Cycle* the_eds;
     Cycle_element* ce;
         //  int fb, lb, nb, ng;
@@ -1126,7 +1123,6 @@ check_rev_ordered(const Permutation* perm, Reversal rev)
         // Permutation* perm = step->perm;
         //  Reversal rev = step->rev;
     int result = TRUE;
-    int i;
 
     if(rev.marker_numbers[0] != UNKNOWN){
     
