@@ -16,10 +16,12 @@ extern Reversal r_init;
 extern unsigned long rng_long;
 extern int Error_count;
 extern FILE* fp_in;
-extern FILE* fp_out1, * fp_out2, * fp_out3, * fp_out4, * fp_out5, * fp_out6, * fp_out7, * fp_out8, * fp_rawhot, * fp_rawq;;
+extern FILE* fp_out1, * fp_out2, * fp_out3, * fp_out4, * fp_out5,
+  * fp_out6, * fp_out7, * fp_out8, * fp_rawhot, * fp_rawq, * fp_prog;
 extern FILE* fp_raw[MAX_N_TEMPERATURES]; 
 extern FILE* fp_LiLtout, * fp_lambdaIlambdaTout;
 extern int sigint_raised; // flag; FALSE to start, TRUE after SIGINT signal handled
+extern char* output_prefix;
 
 extern double run_around_clocks, run_around_calls;
 extern double run_around_old_clocks, run_around_old_calls;
