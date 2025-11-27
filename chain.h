@@ -9,10 +9,14 @@ int converged(int* lengths, int fresh_chains);
 int X_converged(int index, const Run_info_in* r_in,  double** cumeSteps, double** cumeX, double** cumeXsqr, struct XBW* the_XBW);
 //void update_lambda(State* state, const Run_info_in* r_in);
 Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double exponent);
-inline int update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, double exponent);
-inline int update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, double exponent);
-inline int update_r(Path* path, Lambdas* L);
-inline int update_xi(Path* path, Lambdas* L);
+//inline
+int update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max, double exponent);
+//inline
+int update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max, double exponent);
+//inline
+int update_r(Path* path, Lambdas* L, double r_step_width, double exponent);
+//inline
+int update_xi(Path* path, Lambdas* L, double exponent);
 void update_chain(Chain* the_chain, const Run_info_in* r_in);
 void initialize_lambdas(State* state, const Run_info_in* r_in);
 //double get_Lambda1(int Imin, int Imax, int Tmin, int Tmax, double lambdaI, double lambdaT);
@@ -51,13 +55,14 @@ double dist_converge(int N_chain, Histogram** hist);
 
 int path_array_insert(Path* path_array[], int count_array[], Path* path); // like path tree but do it dumb way with array
 
-double test_trans_sym(int size, long trans[][100]);
+double test_trans_sym(int size, long** trans);
 
 double srh(double a);
 
 double check_path_freq_vs_pi_old(Path_tree* tree);
 
-inline double within_chain_variance(int N, double sumX, double sumXsqr);
+//inline
+double within_chain_variance(int N, double sumX, double sumXsqr);
 void chain_set_abw(Chain_set* chain_set);
 
 // end of chain.h

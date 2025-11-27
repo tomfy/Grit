@@ -1306,7 +1306,7 @@ int update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max
         + log(L_prop.lambdaI/L->lambdaI)*(double)path->length_i
         + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
 
-    log_pi_ratio += (L->lambdaI - L_prop.lambdaI)/PRIOR_MEAN_LAMBDA;
+    log_pi_ratio += (L->lambdaI - L_prop.lambdaI)/PRIOR_MEAN_LAMBDA; // Exponential prior
     
     log_p_accept = log_pi_ratio*exponent;
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
@@ -1349,7 +1349,7 @@ int update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max
             //  + log(prod_a_to_n(path, &L_prop)) - log(prod_a_to_n(path, L)); // pi_prop/pi_old
       + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
     
-    log_pi_ratio += (L->lambdaT - L_prop.lambdaT)/PRIOR_MEAN_LAMBDA;
+    log_pi_ratio += (L->lambdaT - L_prop.lambdaT)/PRIOR_MEAN_LAMBDA; // Exponential prior
     
     log_p_accept = log_pi_ratio*exponent; //
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
