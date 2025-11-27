@@ -33,7 +33,7 @@ main(int argc, char *argv[])
   //FILE *g_stream = NULL; // for reading in genotypes
   char* cl_control_filename = NULL;
   //FILE *c_stream = NULL; // for reading in pedigrees (if specified)
-  // char* output_prefix = "";
+  output_prefix = "";
   long cl_rng_seed = 0; // if left at this value, use value in control file.
   // static int cl_signed_flag = -1; // 1: signed, 0: unsigned, other: use control file value
   // static int cl_unsigned_flag = 0; // if set, unsigned, if neither set, use value in control file
