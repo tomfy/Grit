@@ -3,11 +3,12 @@ use strict;
 use Getopt::Long;
 
 my $nprocs = 1;
-my $input_data_file = undef; # file with the marker orders or  2 genomes
+my $data_file = undef; # file with the marker orders or  2 genomes
 my $control_file = undef; # control file
 my $nchains = undef; # number chains per process
 my $seed = time();
 my $signed = undef;
+my $stop_at = undef;
 
 GetOptions(
 	   'input_file|data_file=s' => \$data_file,
@@ -15,9 +16,11 @@ GetOptions(
 	   'nprocs|processes=i' => \$nprocs,
 	   'nchains=i' => \$nchains,  # number of chains per process
 	   'seed|rng_seed=i' => \$seed,
-	   'signed!' => $signed, # -nosigned -> unsigned analysis
+	   'signed!' => \$signed, # -nosigned -> unsigned analysis
+	   'stop=i' => \$stop_at,
 	  );
 print STDERR "nprocs: $nprocs\n";
+
 my $pid = -1;
 my $proc_index = 0;
 my $prefix;
@@ -33,6 +36,7 @@ while (1) {
     if(defined $data_file){ $grit_command .= " --data $data_file "; }	
     if(defined $control_file){ $grit_command .= " --control $control_file "; }
     if(defined $signed){ $grit_command .= " $signed "; }
+    if(defined $stop_at){ $grit_command .= " -stop $stop_at "; }			  
     
     system"$grit_command";
     print STDERR "Child process $proc_index. grit completed.\n";
@@ -43,10 +47,10 @@ while (1) {
     $seed += 10000;
     #sleep($sleeptime);
     print STDERR "parent process with pid: $pid  proc_index:  $proc_index  seed: $seed\n";
-    if($proc_index < $nprocs){
+    if($proc_index < $nprocs){ # fork another child process
       print STDERR "parent process with pid: $pid  proc_index:  $proc_index  forking.\n";
       $pid = fork();
-    }else{ # the last one, just run in parent process
+    }else{ # the last one, just run grit in the parent process
       # $proc_index++;
       $prefix = $proc_index . "_"; #$proc_index == $nproc
       #sleep($sleeptime);
@@ -56,6 +60,7 @@ while (1) {
       if(defined $data_file){ $grit_command .= " --data $data_file "; }	
       if(defined $control_file){ $grit_command .= " --control $control_file "; }
       if(defined $signed){ $grit_command .= " $signed "; }
+      if(defined $stop_at){ $grit_command .= " -stop $stop_at "; }	
       system "$grit_command";
       print STDERR "parent process $proc_index grit completed.\n";
       last;
@@ -66,3 +71,4 @@ while (1) {
   }
  
 }
+print "Process $proc_index done.\n";
