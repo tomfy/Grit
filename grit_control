@@ -1,4 +1,4 @@
-Genome_data_file   N16_C1 
+Genome_data_file   N16_M4 
 Use_distances	   0
 N_rev_fake         0
 lambda_ratio_fake  50.0
@@ -6,14 +6,14 @@ N_chain            2
 N_data             1
 
 Update_lambdas_mode  3
-Lambda             2.5
-lambda_max         0.25
+Lambda             5.0
+lambda_max         1
 
 Epsilon            0.15
 Init_long_param    4.0
 Init_long_sf_param 2.0
 
-N_temperatures     2
+N_temperatures     1
 T_cold		   1.0
 T_hot		   1.02
 Do_MC3_swap	   1
@@ -28,12 +28,12 @@ Conv_lambdaIdist   100.2
 Conv_lambdaTdist   100.2
              
 Burn_in      	   1000
-Stop_at             50
+Stop_at            50
 Min_burn_in_length 1000
 Max_runlength      5000000
-Rand_seed          1053364529
+Rand_seed          123456789
 L_prop_dist_type   2
 Alpha              0.35
 Xi     		   8.0
-Choose_signs       3
+Choose_signs       0
 Flip_one_sign_epsilon	0.6
