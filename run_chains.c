@@ -18,6 +18,8 @@
 #include "run_chains.h"
 
 #define PROGSTREAM  fp_prog
+#define PROGRESS_OUT_MIN_GAP  20  //
+#define PROGRESS_OUT_GROW_FACTOR (1.04) // 
 
 long run_chains(Chain_set* the_chain_set, const Run_info_in* r_in, long* cpu_time)
 { 
@@ -36,7 +38,7 @@ long run_chains(Chain_set* the_chain_set, const Run_info_in* r_in, long* cpu_tim
     int last_print_n_steps = 20;
     //double L_g = the_chain_set->chain[0][0]->state->path->start->perm->L_g;
     int converged = FALSE;
-    double BoW_Burn_in = (r_in->Conv_srh - 1.0)*2.0;
+    double BoW_Burn_in = (r_in->Conv_srh - 1.0)*2.0;  // for Conv_srh close to 1
     double BoW_L, BoW_Li, BoW_Lt, BoW_lambdaI, BoW_lambdaT;
     char path_filename[200];
    
@@ -137,6 +139,7 @@ long run_chains(Chain_set* the_chain_set, const Run_info_in* r_in, long* cpu_tim
 
     }
     while (steps_so_far < runlength && !sigint_raised); // if sigint_raised (i.e. if control-c has been pressed), bail out here
+    (void)progress_output(r_in, n_mc3_swap, the_chain_set, steps_so_far, n_mc3_swap_try, tstart);
     tstop = time(NULL); // GETCPUTIME; 
     *cpu_time = (double)(tstop - tstart);
         // ****************** end of chain iteration section ******************
@@ -241,28 +244,35 @@ long progress_output(const Run_info_in* r_in, int* n_mc3_swap, Chain_set* the_ch
     for(long iii=0; iii<r_in->N_temperatures-1; iii++){
       fprintf(PROGSTREAM, " %i ", n_mc3_swap[iii]);
     } fprintf(PROGSTREAM, "Out of: %i", n_mc3_swap_try);
-  }fprintf(PROGSTREAM, "\n");
+  fprintf(PROGSTREAM, "\n");
+  }
 
   {
-    double n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_r = 0.0;
-    fprintf(PROGSTREAM, "     T  P_a's:    path    lambdaI    lambdaT    r/xi \n"); 
+    double n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_Lambda = 0.0, n_acc_r = 0.0;
+    fprintf(PROGSTREAM, "     T  P_a's:    path    lambdaI    lambdaT   Lambda   r/xi \n"); 
     for(long iii=0; iii<r_in->N_temperatures; iii++){
+      n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_Lambda = 0.0, n_acc_r = 0.0;
       for(long ii=0; ii<r_in->N_chain; ii++){
-	n_step = 0.0, n_acc_path = 0.0, n_acc_lambdaI = 0.0, n_acc_lambdaT = 0.0, n_acc_r = 0.0;
+	
 	the_chain = the_chain_set->chain[ii][iii];
 	n_step += the_chain->N_steps_so_far;
 	n_acc_path += the_chain->n_acc_path;
 	n_acc_lambdaI += the_chain->n_acc_lambdaI;
 	n_acc_lambdaT += the_chain->n_acc_lambdaT;
+	n_acc_Lambda += the_chain->n_acc_Lambda;
 	n_acc_r += the_chain->n_acc_r;
 	//printf("the_chain->n_acc_r, n_acc_r: %ld %g  %g \n", iii, the_chain->n_acc_r, n_acc_r);
+	//}
       }
       the_chain_set->Pa_path[iii] = n_acc_path/n_step;
       the_chain_set->Pa_lambdaI[iii] = n_acc_lambdaI/n_step;
       the_chain_set->Pa_lambdaT[iii] = n_acc_lambdaT/n_step;
+      the_chain_set->Pa_Lambda[iii] = n_acc_Lambda/n_step;
       the_chain_set->Pa_r[iii] = n_acc_r/n_step;
-      fprintf(PROGSTREAM, "%8g     %9g  %9g %9g %9g \n", the_chain_set->chain[0][iii]->temperature, the_chain_set->Pa_path[iii],
-	     the_chain_set->Pa_lambdaI[iii], the_chain_set->Pa_lambdaT[iii], the_chain_set->Pa_r[iii]);
+      fprintf(PROGSTREAM, "%8g     %9g  %9g %9g %9g %9g\n", the_chain_set->chain[0][iii]->temperature, the_chain_set->Pa_path[iii],
+	     the_chain_set->Pa_lambdaI[iii], the_chain_set->Pa_lambdaT[iii],
+	      the_chain_set->Pa_Lambda[iii], the_chain_set->Pa_r[iii]);
+      //}
     } // printf("\n");
 
   }
