@@ -176,8 +176,8 @@ typedef struct path{
 typedef struct lambdas{
     double lambdaI, lambdaT; // rates for inversions, translocations, respectively.
     double Lambda; // total rate, including dummy events (if any).
-    double xi; //if LambdaI < lambdaT, xi = lambdaI/lambdaT  else xi = (2 - lambdaT/lambdaI)
-    double r;
+    double xi; //if lambdaI < lambdaT, xi = lambdaI/lambdaT  else xi = (2 - lambdaT/lambdaI)
+  double r; // r = lambdaI/lambdaT
 }Lambdas;
 
 typedef struct state{
@@ -198,7 +198,7 @@ typedef struct run_info_in{
     
     int Update_lambdas_mode; // 0: no uniformization, fixed lambda 1: no uniformization, simulated Lambda
         // 2,3 lambdaI, lambdaT parametrization, 4,5,6: Lambda, r parametrization
-    double Lambda; // For no-uniformization modes: <0 -> Lambda is simulated; if positive, is the fixed value of Lambda.
+    double Lambda_init; // For no-uniformization modes: <0 -> Lambda is simulated; if positive, is the fixed value of Lambda.
     double lambda_max; // prior p(lambdaI, lambdaT) = 1/lambda_max^2 for lambdaI, lambdaT both < lambda_max
     double Lambda_max; // Max value of Lambda. Value of Lambda corresponding to LambdaI = lambdaT = lambda_max
       
