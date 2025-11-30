@@ -41,8 +41,9 @@ main(int argc, char *argv[])
   int cl_output_paths = FALSE; // 
   int cl_init_path_length = -1; // -1 -> default: first chain is long, if > 1 chain, 1 is short, the rest long.
   double cl_epsilon = -1.0; // (0,1) larger -> longer proposed paths, lower acceptance prob.
-  int cl_n_temperatures = -1.0; // the number of temperatures for mcmcmc 
+  int cl_n_temperatures = -1; // the number of temperatures for mcmcmc 
   double cl_t_hot = -1.0; // the hottest temperature for mcmcmc
+  long cl_stop = -1; // stop after this many burn-ins
   
   int c;
   while(1){
@@ -63,11 +64,12 @@ main(int argc, char *argv[])
       {"n_temperatures", required_argument, NULL, 'n'},
       // {"t_hot", required_argument, NULL, 'h'},
       {"hot_temperature", required_argument, NULL, 'h'},
+      {"stop", required_argument, NULL, 'x'},
       {NULL,         0,        NULL,  0 } // so will abort if unrecognized option
     };
      
-    // c = getopt_long_only(argc, argv, "", long_options, &option_index);
-    c = getopt_long(argc, argv, "", long_options, &option_index);
+    c = getopt_long_only(argc, argv, "", long_options, &option_index); // allows e.g. -prefix '1_' rather than --prefix
+    // c = getopt_long(argc, argv, "", long_options, &option_index);
     printf("c: %i\n", c);
     if(c == -1) break;
     switch(c){
@@ -105,6 +107,9 @@ main(int argc, char *argv[])
     case 'n':
       cl_n_temperatures = atoi(optarg);
       break;
+    case 'x':
+      cl_stop = atoi(optarg);
+      break;
     case 'h':
       cl_t_hot = atof(optarg);
       printf("cl t hot: %g\n", cl_t_hot);
@@ -125,6 +130,7 @@ main(int argc, char *argv[])
   printf("cl choose signs: %i\n", cl_choose_signs);
   printf("cl epsilon: %g\n", cl_epsilon);
   printf("cl t_hot: %g\n", cl_t_hot);
+ 
   //   printf("cl unsigned flag: %i\n", cl_unsigned_flag);
   //getchar();
 
@@ -163,6 +169,7 @@ main(int argc, char *argv[])
     if(cl_epsilon > 0){ r_in.Epsilon = cl_epsilon; printf("epsilon: %g %g\n", cl_epsilon, r_in.Epsilon); };
     if(cl_n_temperatures > 0){ r_in.N_temperatures = cl_n_temperatures; }
     if(cl_t_hot > 0){ r_in.T_hot = cl_t_hot; }
+    if(cl_stop > 0){ r_in.Stop_at = cl_stop; }
     check_run_params(&r_in);
     printf("seed: %ld\n", r_in.Rand_seed); //getchar();
     seedrand(r_in.Rand_seed); 
