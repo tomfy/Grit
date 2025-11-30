@@ -17,12 +17,12 @@
 // lambda update macros
 #define LAMBDA_DEF_FACTOR 1.0 // >= 1.0;
 #define UPDATE_lambdaIT_MODE 0 // 0: lamdaI_prop = lambdaI + width*(drand() - 0.5), (reflected into 0 to lambda_max), else: use gamma_dev
-#define LAMBDA_I_STEP_WIDTH_COEFF 4.0
-#define LAMBDA_T_STEP_WIDTH_COEFF 8.0
+#define LAMBDA_I_STEP_WIDTH_COEFF 6.0
+#define LAMBDA_T_STEP_WIDTH_COEFF 18.0
 
 #define rUPDATE_MODE 2 // 1: r, anything else: xi
 #define r_STEP_WIDTH 100.0
-#define XI_WIDTH 0.4
+#define XI_WIDTH 2.0
 
 // seds preference macros
 #define PREFERDD0SEDS TRUE //
