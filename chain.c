@@ -21,8 +21,12 @@
 
 #define NODISTLL (n_edges*(n_edges-1))
 #define R_FIXED  (2.0)
-#define DEFAULT_OUTPUT_PATH  FALSE
-#define PRIOR_MEAN_LAMBDA  0.5
+#define DEFAULT_OUTPUT_PATH  FALSE // controls whether to output a file containing paths
+
+#define LAMBDAS_EXP_PRIOR   TRUE // TRUE to use exponential priors, otherwise flat (up to lambda max)
+// Pr(lambdaI) propto  exp(-lambdaI/PRIOR_MEAN_LAMBDA)  and 
+// Pr(lambdaT) propto  exp(-lambdaT/PRIOR_MEAN_LAMBDA)
+#define LAMBDAS_EXP_PRIOR_MEAN  (0.5)
 
 double srh(double a)
 {
@@ -40,7 +44,7 @@ void initialize_lambdas(State* state, const Run_info_in* r_in)
     int NpMchoose2 = (NpM-1)*NpM/2; // number of inversions+translocations, including inverting all markers on a chromosome
     // and inverting single markers, (but not inversions including zero markers)
     double Iavg = get_n_inv_avg(path), Tavg = get_n_trans_avg(path), Ai_avg = get_A_i_avg(path), At_avg = get_A_t_avg(path);
-        //   printf("Iavg, Tavg: %g %g \n", Iavg, Tavg);
+    // printf("Iavg, Tavg: %g %g \n", Iavg, Tavg);
 
     if(r_in->Use_distances == FALSE){
         L_g = (double)p1->n_edge;
@@ -53,7 +57,7 @@ void initialize_lambdas(State* state, const Run_info_in* r_in)
         
         // Modes 0, 1, no uniformization, no dummies added. (this calculation assumes r=2)
     if(r_in->Update_lambdas_mode == 0){ // fixed Lambda
-        state->L->Lambda = r_in->Lambda;
+        state->L->Lambda = r_in->Lambda_init;
         state->L->lambdaI = state->L->Lambda/(double)NpMchoose2;
         state->L->lambdaT = 0.0; //  state->L->lambdaI/R_FIXED;
     }
@@ -64,7 +68,7 @@ void initialize_lambdas(State* state, const Run_info_in* r_in)
     }
         // Modes 2, 3, use uniformization, dummies added. lambdaI, lambdaT parametrization
     else if(r_in->Update_lambdas_mode == 2){ // lambdaI, lambdaT fixed, with lambdaI/lambdaT = 2
-        state->L->lambdaI = r_in->Lambda/(double)NpMchoose2;
+        state->L->lambdaI = r_in->Lambda_init/(double)NpMchoose2;
         state->L->lambdaT = state->L->lambdaI/R_FIXED;
         state->L->Lambda = get_Lambda(L_g, state->L->lambdaI, state->L->lambdaT);
         state->L->xi = get_xi(state->L->lambdaI, state->L->lambdaT); 
@@ -77,7 +81,7 @@ void initialize_lambdas(State* state, const Run_info_in* r_in)
     }
      // Modes 4,5,6, use uniformization, dummies added. Lambda, r parametrization
     else if(r_in->Update_lambdas_mode == 4){ // Lambda fixed, r=2 fixed
-        state->L->lambdaI = r_in->Lambda/(double)NpMchoose2;
+        state->L->lambdaI = r_in->Lambda_init/(double)NpMchoose2;
         state->L->lambdaT = state->L->lambdaI/R_FIXED;
         state->L->Lambda = get_Lambda(L_g, state->L->lambdaI, state->L->lambdaT);
         state->L->xi = get_xi(state->L->lambdaI, state->L->lambdaT); 
@@ -231,6 +235,7 @@ get_lambdaIT_from_Lambda_xi(double L_g, double Lambda, double xi, double* lambda
 {
         // inverse of get_Lambda
     double alpha = LAMBDA_DEF_FACTOR*L_g*L_g;
+    // fprintf(stderr, "alpha xi %g %g  ", alpha, xi);
     if(xi <= 1.0){ 
         *lambdaT = Lambda/alpha;
         *lambdaI = xi*(*lambdaT);
@@ -240,6 +245,7 @@ get_lambdaIT_from_Lambda_xi(double L_g, double Lambda, double xi, double* lambda
         *lambdaT = (*lambdaI)*(2.0 - xi);
             //  printf("in get_lambdaIt...Lambda, r, lambdaI,T: %g %g %g %g \n", Lambda, r, *lambdaI, *lambdaT);
     }
+    // fprintf(stderr, "lambdaI lambdaT  %g %g \n", *lambdaI, *lambdaT);
 } // end of get_LambdaIT_from_Lambda_xi_dist 
 
 
@@ -323,18 +329,32 @@ Four_doubles update_lambdas(State* state, const Run_info_in* r_in, double expone
 
          /*    printf("length, length_a, lambdaI, lambdaT, : %i %i  %g %g \n", state->path->length, state->path->length_a, */
 /*                   state->L->lambdaI, state->L->lambdaT); */
-	  state->L->Lambda = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
-
-	  /*  
+	  if(LAMBDAS_EXP_PRIOR){  //  with exponential prior 
 	    double Lambda_prop = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
-	    double lambdaI_prop, lambdaI_prop;
-	    get_lambdaIT_from_Lambda_xi(L_g, state->L->Lambda, state->L->xi, &(state->L->lambdaI), &(state->L->lambdaT));
-	    double log_prior_ratio = ((L_prop.lambdaI + L_prop.lambdaT) - (L->lambdaI + L->lambdaT))/PRIOR_MEAN_LAMBDA;  /* */
-
-	    
-                //  printf("after gibbs step for Lambda\n");
-            accepts.c += 1.0/(double)Nlambdaupdates_of_type;
+	    double lambdaI_prop, lambdaT_prop;
+	    get_lambdaIT_from_Lambda_xi(L_g, Lambda_prop, state->L->xi, &lambdaI_prop, &lambdaT_prop);	    
+	    double log_prior_ratio = ((state->L->lambdaI + state->L->lambdaT) - (lambdaI_prop + lambdaT_prop))/LAMBDAS_EXP_PRIOR_MEAN;  /* */
+	    /*  fprintf(stderr, "xyzzyx: %g  %g    %g  %g     %g  %g    %g\n\n ",
+		     Lambda_prop, state->L->Lambda,
+		     lambdaI_prop, state->L->lambdaI,
+		     lambdaT_prop, state->L->lambdaT, log_prior_ratio); */
+	     //  fprintf(stderr, "%g   %g    %g  %g\n", lambdaI_prop - state->L->lambdaI,  lambdaT_prop - state->L->lambdaT, Lambda_prop, state->L->Lambda);
+	    if((log_prior_ratio >= 0.0)  || (log(drand(&rng_long)) < log_prior_ratio)){ // accept
+	      state->L->Lambda = Lambda_prop;
+	      state->L->lambdaI = lambdaI_prop;
+	      state->L->lambdaT = lambdaT_prop;	       
+	      accepts.c += 1.0/(double)Nlambdaupdates_of_type;
+	      //printf("Mode:  %d  iii: %d\n", (int)Mode, (int)iii);
+	     
+	    }
+	  }else{ // flat lambda prior, Gibbs step
+	    state->L->Lambda = gamma_dev(state->path->length_a + 2, r_in->Lambda_max);
+	    accepts.c += 1.0/(double)Nlambdaupdates_of_type;
+	    //printf("Mode:  %d  iii: %d   %g\n", (int)Mode, (int)iii, accepts.c);
+	  
+	
             get_lambdaIT_from_Lambda_xi(L_g, state->L->Lambda, state->L->xi, &(state->L->lambdaI), &(state->L->lambdaT));
+	} 
                 // now *L is up to date
 	    // fprintf(stderr, "MODE: %i \n", (int)Mode);
             if(Mode == 6){ // simulate xi also, rUPDATE_MODE is not 1
@@ -727,6 +747,8 @@ update_chain(Chain* the_chain, const Run_info_in* r_in)
     }
     else{
         lambda_accepts = update_lambdas(the_state, r_in, 1.0/the_chain->temperature);
+	/* printf("AAAAAAAAA: %4g %4g %4g %4g  %d\n", lambda_accepts.a, lambda_accepts.b,
+		lambda_accepts.c, lambda_accepts.d, the_chain->N_steps_so_far); /* */
     }
                
     the_chain->n_acc_lambdaI += lambda_accepts.a;
@@ -946,7 +968,7 @@ void input_run_params(FILE* fp, Run_info_in* r_in)
 	 &r_in->N_data);
   fscanf(fp, "%*s%i  %*s%lf %*s%lf",
 	 &r_in->Update_lambdas_mode,
-	 &r_in->Lambda,
+	 &r_in->Lambda_init,
 	 &r_in->lambda_max);
     
   r_in->Lambda_max = UNKNOWN; // gets set in grit.c
@@ -1005,7 +1027,7 @@ void output_run_params(FILE* fp, const Run_info_in* r_in)
     
     fprintf(fp, "%c %-24s%i\n%c %-24s%g\n%c %-24s%g\n%c %-24s%g\n#\n",
             fc, "Update_lambdas_mode", r_in->Update_lambdas_mode,
-            fc, "Lambda", r_in->Lambda,
+            fc, "Lambda", r_in->Lambda_init,
             fc, "lambda_max", r_in->lambda_max, 
             fc, "Lambda_max", r_in->Lambda_max);
     
@@ -1080,6 +1102,8 @@ void output_run_params(FILE* fp, const Run_info_in* r_in)
     fprintf(fp, "# ,LTHEATKNEE: %i \n", LTHEATKNEE);
     fprintf(fp, "# ,LTSHARP: %g \n", LTSHARP);
     fprintf(fp, "# ,INITLONGPATH_IPF: %g \n", INITLONGPATH_IPF);
+    fprintf(fp, "# ,LAMBDAS_EXP_PRIOR: %i\n", (int)LAMBDAS_EXP_PRIOR);
+    fprintf(fp, "# ,LAMBDAS_EXP_PRIOR_MEAN: %g\n", LAMBDAS_EXP_PRIOR_MEAN);
     fprintf(fp, "\n");
 }// end output_run_params
 
@@ -1306,7 +1330,9 @@ int update_lambdaI(const Path* path, Lambdas* L, double width, double lambda_max
         + log(L_prop.lambdaI/L->lambdaI)*(double)path->length_i
         + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
 
-    log_pi_ratio += (L->lambdaI - L_prop.lambdaI)/PRIOR_MEAN_LAMBDA; // Exponential prior
+    if(LAMBDAS_EXP_PRIOR){
+      log_pi_ratio += (L->lambdaI - L_prop.lambdaI)/LAMBDAS_EXP_PRIOR_MEAN; // Exponential prior
+    }
     
     log_p_accept = log_pi_ratio*exponent;
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
@@ -1348,8 +1374,10 @@ int update_lambdaT(const Path* path, Lambdas* L, double width, double lambda_max
         + log(L_prop.lambdaT/L->lambdaT)*(double)path->length_t
             //  + log(prod_a_to_n(path, &L_prop)) - log(prod_a_to_n(path, L)); // pi_prop/pi_old
       + log_prod_a_to_n(path, &L_prop) - log_prod_a_to_n(path, L); // pi_prop/pi_old
-    
-    log_pi_ratio += (L->lambdaT - L_prop.lambdaT)/PRIOR_MEAN_LAMBDA; // Exponential prior
+
+    if(LAMBDAS_EXP_PRIOR){
+      log_pi_ratio += (L->lambdaT - L_prop.lambdaT)/LAMBDAS_EXP_PRIOR_MEAN; // Exponential prior
+    }
     
     log_p_accept = log_pi_ratio*exponent; //
     if(!is_normal_or_zero(log_p_accept)) n_lambdaIT_p_a_nnoz++;
@@ -1441,13 +1469,12 @@ int update_r(Path* path, Lambdas* L, double r_step_width, double exponent)
     L_prop.r = ( L_prop.xi <= 1.0)?  L_prop.xi: 1.0/(2.0 -  L_prop.xi);
 
     get_lambdaIT_from_Lambda_r(L_g, L->Lambda, L_prop.r, &(L_prop.lambdaI), &(L_prop.lambdaT));
-
-    double log_prior_ratio = ((L_prop.lambdaI + L_prop.lambdaT) - (L->lambdaI + L->lambdaT))/PRIOR_MEAN_LAMBDA;
     
     log_p_accept = log(L_prop.lambdaI/L->lambdaI)*(double)path->length_i + log(L_prop.lambdaT/L->lambdaT)*(double)path->length_t;
     log_p_accept += log_prod_a_to_n(path, &L_prop);
     log_p_accept -= log_prod_a_to_n(path, L);
-    log_p_accept -= log_prior_ratio;
+    // put in exponential prior 
+    if(LAMBDAS_EXP_PRIOR) log_p_accept += ((L->lambdaI + L->lambdaT) - (L_prop.lambdaI + L_prop.lambdaT))/LAMBDAS_EXP_PRIOR_MEAN; 
     
     log_p_accept *= exponent;
     if(!is_normal_or_zero(log_p_accept)){ printf("in update_xi. log_p_accept is not normal. p_accept= %g \n", log_p_accept);  n_rxi_p_a_nnoz++;}   
